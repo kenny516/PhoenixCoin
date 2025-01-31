@@ -2,16 +2,47 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Image, ScrollView, Platform } from 'react-native';
 import { Link } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 export default function SignUpScreen() {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [errors, setErrors] = useState({
+        name: '',
+        email: '',
+        password: ''
+    });
+
+    const validateForm = () => {
+        let isValid = true;
+        const newErrors = { name: '', email: '', password: '' };
+
+        if (name.length < 3) {
+            newErrors.name = 'Le nom doit contenir au moins 3 caractères';
+            isValid = false;
+        }
+
+        if (!email.includes('@')) {
+            newErrors.email = 'Email invalide';
+            isValid = false;
+        }
+
+        if (password.length < 6) {
+            newErrors.password = 'Le mot de passe doit contenir au moins 6 caractères';
+            isValid = false;
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
 
     const handleSignUp = () => {
-        // Implement sign up logic here
-        console.log('Sign up:', name, email, password);
+        if (validateForm()) {
+            // Implement sign up logic here
+            console.log('Sign up:', name, email, password);
+        }
     };
 
     return (
@@ -24,6 +55,7 @@ export default function SignUpScreen() {
                 showsVerticalScrollIndicator={false}>
                 <View className="flex-1 px-6 py-12 justify-center">
                     <View className="items-center mb-10">
+                        <FontAwesome5 name="phoenix-framework" size={50} color="#3B82F6" />
                         <Text className="text-3xl font-bold text-text-light">Créer un compte</Text>
                         <Text className="text-text-muted mt-2">Inscrivez-vous pour commencer</Text>
                     </View>
@@ -40,6 +72,7 @@ export default function SignUpScreen() {
                                     onChangeText={setName}
                                 />
                             </View>
+                            {errors.name ? <Text className="text-red-500 mt-1">{errors.name}</Text> : null}
                         </View>
 
                         <View>
@@ -55,6 +88,7 @@ export default function SignUpScreen() {
                                     autoCapitalize="none"
                                 />
                             </View>
+                            {errors.email ? <Text className="text-red-500 mt-1">{errors.email}</Text> : null}
                         </View>
 
                         <View>
@@ -72,6 +106,7 @@ export default function SignUpScreen() {
                                     <Feather name={showPassword ? "eye-off" : "eye"} size={20} color="#6B7280" />
                                 </TouchableOpacity>
                             </View>
+                            {errors.password ? <Text className="text-red-500 mt-1">{errors.password}</Text> : null}
                         </View>
 
                         <TouchableOpacity

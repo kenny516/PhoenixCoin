@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Image, ScrollView, Platform } from 'react-native';
 import { Link } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 export default function SignInScreen() {
     const [email, setEmail] = useState('');
@@ -23,6 +24,7 @@ export default function SignInScreen() {
                 showsVerticalScrollIndicator={false}>
                 <View className="flex-1 px-6 py-12 justify-center">
                     <View className="items-center mb-10">
+                        <FontAwesome5 name="phoenix-framework" size={50} color="#3B82F6" />
                         <Text className="text-3xl font-bold text-text-light">Bienvenue</Text>
                         <Text className="text-text-muted mt-2">Connectez-vous pour continuer</Text>
                     </View>
@@ -44,8 +46,8 @@ export default function SignInScreen() {
                         </View>
 
                         <View>
-                            <Text className="text-gray-700 mb-2 font-medium">Mot de passe</Text>
-                            <View className="flex-row items-center border border-gray-300 rounded-xl px-4">
+                            <Text className="text-text-light mb-2 font-medium">Mot de passe</Text>
+                            <View className="flex-row items-center border border-secondary-300 rounded-xl px-4">
                                 <Feather name="lock" size={20} color="#6B7280" />
                                 <TextInput
                                     className="flex-1 p-4"
