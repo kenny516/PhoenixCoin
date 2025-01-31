@@ -1,95 +1,115 @@
-import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Image, Dimensions, Platform } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { Link } from 'expo-router';
+import { Feather } from '@expo/vector-icons';
 
-export default function HomeScreen() {
-    const CryptoCard = ({ name, price }: { name: string; price: string }) => (
-        <View className="card mr-4 w-40">
-            <View className="bg-blue-50 w-12 h-12 rounded-full items-center justify-center mb-3">
-                <Text className="text-blue-500 font-bold">{name[0]}</Text>
-            </View>
-            <Text className="font-medium">{name}</Text>
-            <Text className="text-green-500 mt-1">+1.2%</Text>
-            <Text className="text-gray-600 font-bold mt-1">{price}</Text>
-        </View>
-    );
+const { width } = Dimensions.get('window');
 
-    const FeatureCard = ({ title, description }: { title: string; description: string }) => (
-        <View className="card mb-[var(--spacing-4)]">
-            <Text className="font-bold text-lg mb-[var(--spacing-2)]">{title}</Text>
-            <Text className="text-[var(--gray-600)]">{description}</Text>
-        </View>
-    );
+export default function LandingScreen() {
+    const features = [
+        {
+            icon: 'shield',
+            title: 'Stockage Sécurisé',
+            description: 'Vos actifs crypto sont protégés par des mesures de sécurité de pointe'
+        },
+        {
+            icon: 'trending-up',
+            title: 'Trading en Temps Réel',
+            description: 'Exécutez des transactions instantanément avec des données de marché en temps réel'
+        },
+        {
+            icon: 'clock',
+            title: 'Accès 24/7',
+            description: 'Échangez des cryptomonnaies à tout moment, partout dans le monde'
+        }
+    ];
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
+        <SafeAreaView className="flex-1 bg-white" style={{
+            paddingTop: Platform.OS === 'android' ? 25 : 0
+        }}>
             <StatusBar style="dark" />
-            <ScrollView className="flex-1">
-                {/* Header */}
-                <View className="flex-row justify-between items-center p-6">
-                    <Text className="text-2xl font-bold text-blue-500">Phoenix Coin</Text>
-                </View>
-
-                {/* Hero Section */}
-                <View className="mx-4">
-                    <View className="bg-blue-500 p-6 rounded-3xl">
-                        <Text className="title-text text-white mb-[var(--spacing-2)]">
-                            Trade Crypto with Confidence
-                        </Text>
-                        <Text className="subtitle-text text-[var(--primary-light)]">
-                            Buy, sell, and manage your crypto portfolio in one place
-                        </Text>
-                        <View className="bg-white/10 p-[var(--spacing-4)] rounded-xl mt-[var(--spacing-4)]">
-                            <Text className="text-white">Total Market Cap</Text>
-                            <Text className="text-white text-2xl font-bold mt-[var(--spacing-1)]">$2.14T</Text>
-                            <View className="flex-row items-center mt-[var(--spacing-2)]">
-                                <Text className="text-[var(--success)]">↑ 3.2%</Text>
-                                <Text className="text-white/70 ml-[var(--spacing-2)]">24h Change</Text>
-                            </View>
+            <ScrollView
+                className="flex-1"
+                showsVerticalScrollIndicator={false}>
+                <View className="pt-4">
+                    {/* Header */}
+                    <View className="p-6">
+                        <View className="flex-row items-center justify-between">
+                            <Text className="text-2xl font-bold text-primary-500">Phoenix Coin</Text>
+                            <Link href="/auth/sign-in" asChild>
+                                <TouchableOpacity>
+                                    <Text className="text-primary-500 font-semibold">Connexion</Text>
+                                </TouchableOpacity>
+                            </Link>
                         </View>
                     </View>
-                </View>
 
-                {/* Popular Coins */}
-                <View className="mx-[var(--spacing-4)] mt-[var(--spacing-6)]">
-                    <Text className="title-text mb-[var(--spacing-4)]">Popular Coins</Text>
-                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                        <CryptoCard name="Bitcoin" price="$42,384.21" />
-                        <CryptoCard name="Ethereum" price="$2,284.21" />
-                        <CryptoCard name="BNB" price="$312.21" />
-                    </ScrollView>
-                </View>
+                    {/* Hero Section */}
+                    <View className="px-6 pt-8">
+                        <View className="items-center">
+                            <Text className="text-4xl font-bold text-center text-text-light mt-8">
+                                Échangez des Cryptos en Toute Confiance
+                            </Text>
+                            <Text className="text-text-muted text-center mt-4 text-lg">
+                                La plateforme de cryptomonnaie la plus fiable
+                            </Text>
+                        </View>
+                    </View>
 
-                {/* Features */}
-                <View className="mx-[var(--spacing-4)] mt-[var(--spacing-8)]">
-                    <Text className="title-text mb-[var(--spacing-4)]">Why Choose Phoenix Coin?</Text>
-                    <FeatureCard
-                        title="Secure Storage"
-                        description="Your crypto assets are protected by industry-leading security protocols"
-                    />
-                    <FeatureCard
-                        title="24/7 Trading"
-                        description="Trade anytime, anywhere with our reliable platform"
-                    />
-                </View>
+                    {/* Statistics */}
+                    <View className="flex-row justify-around px-6 mt-12">
+                        {[
+                            { value: '95M+', label: 'Utilisateurs vérifiés' },
+                            { value: '100+', label: 'Pays' },
+                            { value: '1T+€', label: 'Volume d\'échange' }
+                        ].map((stat, index) => (
+                            <View key={index} className="items-center">
+                                <Text className="text-2xl font-bold text-primary-500">{stat.value}</Text>
+                                <Text className="text-text-muted text-sm mt-1">{stat.label}</Text>
+                            </View>
+                        ))}
+                    </View>
 
-                {/* CTA Section */}
-                <View className="mx-[var(--spacing-4)] my-[var(--spacing-8)]">
-                    <View className="bg-[var(--gray-100)] p-[var(--spacing-6)] rounded-2xl">
-                        <Text className="title-text mb-[var(--spacing-2)]">Start Trading Now</Text>
-                        <Text className="subtitle-text mb-[var(--spacing-4)]">Join millions of traders worldwide</Text>
+                    {/* Features */}
+                    <View className="px-6 mt-12">
+                        <Text className="text-2xl font-bold text-text-light mb-8">Pourquoi Nous Choisir?</Text>
+                        {features.map((feature, index) => (
+                            <View key={index} className="flex-row items-start mb-8">
+                                <View className="w-12 h-12 bg-primary-100 rounded-full items-center justify-center">
+                                    <Feather name={feature.icon} size={24} color="#6366F1" />
+                                </View>
+                                <View className="ml-4 flex-1">
+                                    <Text className="text-lg font-semibold text-text-light">{feature.title}</Text>
+                                    <Text className="text-text-muted mt-1">{feature.description}</Text>
+                                </View>
+                            </View>
+                        ))}
+                    </View>
+
+                    {/* CTA Section */}
+                    <View className="p-6 mt-8">
+                        <TouchableOpacity
+                            className="bg-primary-500 p-4 rounded-2xl"
+                            onPress={() => {
+                                // Navigation logic
+                            }}>
+                            <Text className="text-white text-center text-lg font-semibold">Commencer</Text>
+                        </TouchableOpacity>
                         <Link href="/auth/sign-up" asChild>
-                            <TouchableOpacity className="btn-primary">
-                                <Text className="text-white text-center font-bold">Create Account</Text>
-                            </TouchableOpacity>
-                        </Link>
-                        <Link href="/auth/sign-in" asChild>
-                            <TouchableOpacity className="mt-[var(--spacing-3)]">
-                                <Text className="text-[var(--primary-color)] text-center font-semibold">
-                                    Already have an account? Sign In
+                            <TouchableOpacity className="mt-4">
+                                <Text className="text-center text-primary-500 font-semibold">
+                                    Créer un Compte
                                 </Text>
                             </TouchableOpacity>
                         </Link>
+                    </View>
+
+                    {/* Footer */}
+                    <View className="p-6 bg-secondary-50 mt-8">
+                        <Text className="text-center text-text-muted">
+                            En continuant, vous acceptez nos Conditions d'Utilisation et notre Politique de Confidentialité
+                        </Text>
                     </View>
                 </View>
             </ScrollView>
