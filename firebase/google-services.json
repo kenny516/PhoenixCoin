@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "496208633082",
+    "project_id": "phoenixcoin-19b13",
+    "storage_bucket": "phoenixcoin-19b13.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:496208633082:android:65ad489487135819cbbd43",
+        "android_client_info": {
+          "package_name": "group.phoenixCoin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDd1O_NdcGh3f39Zaz6SMuVMwhK_LjpWbU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

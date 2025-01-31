@@ -1,74 +1,89 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { Link } from 'expo-router';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
-  );
+    return (
+        <SafeAreaView className="flex-1 bg-gray-50">
+            <StatusBar style="dark" />
+            <ScrollView className="flex-1">
+                {/* Header avec logo */}
+                <View className="flex-row justify-between items-center p-6">
+                    <View className="flex-row items-center gap-2">
+
+                        <Text className="text-2xl font-bold text-blue-600">Phoenix Coin</Text>
+                    </View>
+                </View>
+
+                {/* Hero Section */}
+                <View className="mx-4 mt-4">
+                    <View className="bg-blue-600 p-6 rounded-3xl">
+                        <Text className="text-white text-3xl font-bold mb-2">
+                            Trade Crypto with Confidence
+                        </Text>
+                        <Text className="text-blue-100 text-lg mb-4">
+                            Buy, sell, and manage your crypto portfolio in one place
+                        </Text>
+                        <View className="bg-white/10 p-4 rounded-xl">
+                            <Text className="text-white">Total Market Cap</Text>
+                            <Text className="text-white text-2xl font-bold mt-1">$2.14T</Text>
+                            <View className="flex-row items-center mt-2">
+                                <Text className="text-green-400">↑ 3.2%</Text>
+                                <Text className="text-white/70 ml-2">24h Change</Text>
+                            </View>
+                        </View>
+                    </View>
+                </View>
+
+                {/* Popular Coins */}
+                <View className="mx-4 mt-6">
+                    <Text className="text-xl font-bold mb-4">Popular Coins</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                        {['Bitcoin', 'Ethereum', 'BNB'].map((coin, index) => (
+                            <View key={index} className="bg-white p-4 rounded-2xl mr-4 shadow-sm w-40">
+                                <View className="bg-blue-50 w-12 h-12 rounded-full items-center justify-center mb-3">
+                                    <Text className="text-blue-600 font-bold">{coin[0]}</Text>
+                                </View>
+                                <Text className="font-medium">{coin}</Text>
+                                <Text className="text-green-500 mt-1">+1.2%</Text>
+                                <Text className="text-gray-600 font-bold mt-1">$42,384.21</Text>
+                            </View>
+                        ))}
+                    </ScrollView>
+                </View>
+
+                {/* Features Section */}
+                <View className="mx-4 mt-8">
+                    <Text className="text-xl font-bold mb-4">Why Choose Phoenix Coin?</Text>
+                    <View className="bg-white p-4 rounded-2xl shadow-sm mb-4">
+                        <Text className="font-bold text-lg mb-2">Secure Storage</Text>
+                        <Text className="text-gray-600">Your crypto assets are protected by industry-leading security protocols</Text>
+                    </View>
+                    <View className="bg-white p-4 rounded-2xl shadow-sm mb-4">
+                        <Text className="font-bold text-lg mb-2">24/7 Trading</Text>
+                        <Text className="text-gray-600">Trade anytime, anywhere with our reliable platform</Text>
+                    </View>
+                </View>
+
+                {/* CTA Section */}
+                <View className="mx-4 mt-6 mb-8">
+                    <View className="bg-gray-100 p-6 rounded-2xl">
+                        <Text className="text-xl font-bold mb-2">Start Trading Now</Text>
+                        <Text className="text-gray-600 mb-4">Join millions of traders worldwide</Text>
+                        <Link href="/auth/sign-up" asChild>
+                            <TouchableOpacity className="bg-blue-600 p-4 rounded-xl">
+                                <Text className="text-white text-center font-bold">Create Account</Text>
+                            </TouchableOpacity>
+                        </Link>
+                        <Link href="/auth/sign-in" asChild>
+                            <TouchableOpacity className="mt-3">
+                                <Text className="text-blue-600 text-center font-semibold">Already have an account? Sign In</Text>
+                            </TouchableOpacity>
+                        </Link>
+                    </View>
+                </View>
+            </ScrollView>
+        </SafeAreaView>
+    );
 }
 
-const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
-});
