@@ -1,28 +1,19 @@
 import { Stack } from 'expo-router';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-export default function Layout() {
+export default function TabLayout() {
     const colorScheme = useColorScheme();
 
     return (
         <Stack
             screenOptions={{
                 headerShown: false,
+                animation: 'slide_from_bottom',
                 statusBarTranslucent: false,
                 statusBarStyle: colorScheme === 'dark' ? 'light' : 'dark',
             }}>
-            <Stack.Screen
-                name="sign-in"
-                options={{
-                    title: 'Connexion'
-                }}
-            />
-            <Stack.Screen
-                name="sign-up"
-                options={{
-                    title: 'Inscription'
-                }}
-            />
+            <Stack.Screen name="index" options={{ title: "landingPage" }} />
+            <Stack.Screen name="explore" options={{ title: "explorer" }} />
         </Stack>
     );
 }

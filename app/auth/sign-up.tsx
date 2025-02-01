@@ -46,25 +46,23 @@ export default function SignUpScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-white" style={{
-            paddingTop: Platform.OS === 'android' ? 25 : 0
-        }}>
+        <SafeAreaView className="flex-1 bg-white">
             <ScrollView
                 className="flex-1"
                 contentContainerStyle={{ flexGrow: 1 }}
                 showsVerticalScrollIndicator={false}>
-                <View className="flex-1 px-6 py-12 justify-center">
+                <View className="justify-center flex-1 px-6 py-12">
                     <View className="items-center mb-10">
                         <FontAwesome5 name="phoenix-framework" size={50} color="#3B82F6" />
                         <Text className="text-3xl font-bold text-text-light">Créer un compte</Text>
-                        <Text className="text-text-muted mt-2">Inscrivez-vous pour commencer</Text>
+                        <Text className="mt-2 text-text-muted">Inscrivez-vous pour commencer</Text>
                     </View>
 
                     <View className="space-y-4">
                         <View>
-                            <Text className="text-text-light mb-2 font-medium">Nom complet</Text>
-                            <View className="flex-row items-center border border-secondary-300 rounded-xl px-4">
-                                <Feather name="user" size={20} color="#6B7280" />
+                            <Text className="mb-2 font-medium text-text-light">Nom complet</Text>
+                            <View className="flex-row items-center px-4 border border-secondary-300 rounded-xl">
+                                <Feather name="user" size={20} color="text-muted" />
                                 <TextInput
                                     className="flex-1 p-4"
                                     placeholder="Entrez votre nom complet"
@@ -72,12 +70,12 @@ export default function SignUpScreen() {
                                     onChangeText={setName}
                                 />
                             </View>
-                            {errors.name ? <Text className="text-red-500 mt-1">{errors.name}</Text> : null}
+                            {errors.name ? <Text className="mt-1 text-error">{errors.name}</Text> : null}
                         </View>
 
                         <View>
-                            <Text className="text-gray-700 mb-2 font-medium">Email</Text>
-                            <View className="flex-row items-center border border-gray-300 rounded-xl px-4">
+                            <Text className="mb-2 font-medium text-text-light">Email</Text>
+                            <View className="flex-row items-center px-4 border border-gray-300 rounded-xl">
                                 <Feather name="mail" size={20} color="#6B7280" />
                                 <TextInput
                                     className="flex-1 p-4"
@@ -88,12 +86,12 @@ export default function SignUpScreen() {
                                     autoCapitalize="none"
                                 />
                             </View>
-                            {errors.email ? <Text className="text-red-500 mt-1">{errors.email}</Text> : null}
+                            {errors.email ? <Text className="mt-1 text-red-500">{errors.email}</Text> : null}
                         </View>
 
                         <View>
-                            <Text className="text-gray-700 mb-2 font-medium">Mot de passe</Text>
-                            <View className="flex-row items-center border border-gray-300 rounded-xl px-4">
+                            <Text className="mb-2 font-medium text-gray-700">Mot de passe</Text>
+                            <View className="flex-row items-center px-4 border border-gray-300 rounded-xl">
                                 <Feather name="lock" size={20} color="#6B7280" />
                                 <TextInput
                                     className="flex-1 p-4"
@@ -106,13 +104,13 @@ export default function SignUpScreen() {
                                     <Feather name={showPassword ? "eye-off" : "eye"} size={20} color="#6B7280" />
                                 </TouchableOpacity>
                             </View>
-                            {errors.password ? <Text className="text-red-500 mt-1">{errors.password}</Text> : null}
+                            {errors.password ? <Text className="mt-1 text-red-500">{errors.password}</Text> : null}
                         </View>
 
                         <TouchableOpacity
                             onPress={handleSignUp}
-                            className="bg-primary-500 p-4 rounded-xl mt-4">
-                            <Text className="text-white text-center font-semibold text-lg">
+                            className="p-4 mt-4 bg-primary-500 rounded-xl">
+                            <Text className="text-lg font-semibold text-center text-white">
                                 S'inscrire
                             </Text>
                         </TouchableOpacity>
@@ -120,7 +118,7 @@ export default function SignUpScreen() {
                             <Text className="text-gray-600">Vous avez déjà un compte? </Text>
                             <Link href="/auth/sign-in" asChild>
                                 <TouchableOpacity>
-                                    <Text className="text-blue-500 font-semibold">Se connecter</Text>
+                                    <Text className="font-semibold text-primary-500">Se connecter</Text>
                                 </TouchableOpacity>
                             </Link>
                         </View>

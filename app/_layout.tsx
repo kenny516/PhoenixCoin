@@ -30,12 +30,14 @@ export default function RootLayout() {
 
     return (
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <StatusBar style={colorScheme === 'dark' ? 'dark' : 'light'} />
+            <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} backgroundColor="white" />
             <Stack
                 screenOptions={{
                     headerShown: false,
                     contentStyle: { backgroundColor: 'white' },
-                    animation: 'slide_from_right',
+                    animation: 'slide_from_bottom',
+                    statusBarTranslucent: false,
+                    statusBarStyle: colorScheme === 'dark' ? 'light' : 'dark',
                 }}>
                 <Stack.Screen name="auth" options={{ headerShown: false }} />
                 <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
