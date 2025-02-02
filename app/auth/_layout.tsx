@@ -8,8 +8,6 @@ export default function Layout() {
         <Stack
             screenOptions={{
                 headerShown: false,
-                statusBarTranslucent: false,
-                statusBarStyle: colorScheme === 'dark' ? 'light' : 'dark',
             }}>
             <Stack.Screen
                 name="sign-in"

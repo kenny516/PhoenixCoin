@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Image, ScrollView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Image, ScrollView, Platform, StatusBar } from 'react-native';
 import { Link } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -46,7 +46,11 @@ export default function SignUpScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-white">
+        <SafeAreaView style={{
+            flex: 1,
+            backgroundColor: '#fff',
+            paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
+        }}>
             <ScrollView
                 className="flex-1"
                 contentContainerStyle={{ flexGrow: 1 }}

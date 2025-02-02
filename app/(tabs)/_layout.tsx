@@ -9,8 +9,6 @@ export default function TabLayout() {
             screenOptions={{
                 headerShown: false,
                 animation: 'slide_from_bottom',
-                statusBarTranslucent: false,
-                statusBarStyle: colorScheme === 'dark' ? 'light' : 'dark',
             }}>
             <Stack.Screen name="index" options={{ title: "landingPage" }} />
             <Stack.Screen name="explore" options={{ title: "explorer" }} />
