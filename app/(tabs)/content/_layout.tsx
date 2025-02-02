@@ -92,6 +92,23 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
+                name="portfolio"
+                options={{
+                    title: 'Portefeuille',
+                    tabBarIcon: ({ focused }) => (
+                        <TabBarIcon
+                            name="wallet"
+                            color={focused ? '#2563eb' : '#94a3b8'}
+                            focused={focused}
+                        />
+                    ),
+                    tabBarLabel: ({ focused }) => (
+                        <TabBarLabel label="Portefeuille" focused={focused} />
+                    ),
+                }}
+            />
+
+            <Tabs.Screen
                 name="explore"
                 options={{
                     title: 'Explorer',
