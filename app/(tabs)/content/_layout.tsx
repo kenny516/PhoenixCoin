@@ -124,6 +124,22 @@ export default function TabLayout() {
                     ),
                 }}
             />
+            <Tabs.Screen
+                name="depot-retrait"
+                options={{
+                    title: 'Dépôt/Retrait',
+                    tabBarIcon: ({ focused }) => (
+                        <TabBarIcon
+                            name="bank-transfer"
+                            color={focused ? '#2563eb' : '#94a3b8'}
+                            focused={focused}
+                        />
+                    ),
+                    tabBarLabel: ({ focused }) => (
+                        <TabBarLabel label="Dépôt/Retrait" focused={focused} />
+                    ),
+                }}
+            />
         </Tabs>
     );
 }

@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from 'react-native';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
-import { setupNotifications, sendPriceChangeNotification } from '@/utils/notifications';
 
 // Type pour une crypto-monnaie
 interface Crypto {
@@ -63,67 +62,33 @@ const staticCryptos: Crypto[] = [
 export default function MarketScreen() {
     const [cryptos, setCryptos] = useState<Crypto[]>(staticCryptos);
     const [refreshing, setRefreshing] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const initializeApp = async () => {
-            try {
-                await setupNotifications();
-                //await loadUserFavorites();
-                setError(null);
-            } catch (err) {
-                setError("Erreur de connexion");
-                console.error(err);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        //initializeApp();
-        //const interval = setInterval(checkPriceChanges, 30000);
-        //return () => clearInterval(interval);
+        loadUserFavorites();
     }, []);
-
-    const checkPriceChanges = () => {
-        cryptos.forEach(crypto => {
-            if (crypto.isFavorite) {
-                const newPrice = crypto.currentPrice * (1 + (Math.random() * 0.1 - 0.05));
-                const change = ((newPrice - crypto.currentPrice) / crypto.currentPrice) * 100;
-                if (Math.abs(change) > 1) {
-                    sendPriceChangeNotification(crypto.name, change);
-                }
-            }
-        });
-    };
 
     const loadUserFavorites = async () => {
         try {
-            setIsLoading(true);
             const user = auth.currentUser;
-            if (!user) throw new Error('Utilisateur non connecté');
+            if (user) {
+                const favoritesRef = collection(db, "favorites");
+                const q = query(favoritesRef, where("userId", "==", user.uid));
+                const querySnapshot = await getDocs(q);
 
-            const favoritesRef = collection(db, "favorites");
-            const q = query(favoritesRef, where("userId", "==", user.uid));
-            const querySnapshot = await getDocs(q);
+                const favoriteIds = new Set();
+                querySnapshot.forEach((doc) => {
+                    favoriteIds.add(doc.data().cryptoId);
+                });
 
-            const favoriteIds = new Set();
-            querySnapshot.forEach((doc) => {
-                favoriteIds.add(doc.data().cryptoId);
-            });
-
-            setCryptos(currentCryptos =>
-                currentCryptos.map(crypto => ({
-                    ...crypto,
-                    isFavorite: favoriteIds.has(crypto.id)
-                }))
-            );
+                setCryptos(currentCryptos =>
+                    currentCryptos.map(crypto => ({
+                        ...crypto,
+                        isFavorite: favoriteIds.has(crypto.id)
+                    }))
+                );
+            }
         } catch (error) {
             console.error('Error loading favorites:', error);
-            setError("Erreur lors du chargement des favoris");
-            throw error;
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -151,11 +116,6 @@ export default function MarketScreen() {
                     cryptoId: crypto.id,
                     createdAt: new Date()
                 });
-                await sendPriceChangeNotification(
-                    crypto.name,
-                    0,
-                    "Crypto ajoutée aux favoris"
-                );
             }
 
             setCryptos(cryptos.map(c =>
@@ -168,14 +128,14 @@ export default function MarketScreen() {
         }
     };
 
-    /*     const onRefresh = () => {
-            setRefreshing(true);
-            // Simuler un délai de chargement
-            setTimeout(() => {
-                setCryptos(staticCryptos);
-                setRefreshing(false);
-            }, 1000);
-        }; */
+    const onRefresh = () => {
+        setRefreshing(true);
+        // Simuler un délai de chargement
+        setTimeout(() => {
+            setCryptos(staticCryptos);
+            setRefreshing(false);
+        }, 1000);
+    };
 
     const renderCryptoItem = ({ item }: { item: Crypto }) => (
         <TouchableOpacity
@@ -211,34 +171,17 @@ export default function MarketScreen() {
                 <Text className="text-2xl font-bold text-white">Marché</Text>
             </View>
 
-            {error && (
-                <View className="p-4 bg-red-100">
-                    <Text className="text-red-600">{error}</Text>
-                    <TouchableOpacity
-                        className="p-2 mt-2 bg-red-500 rounded"
-                        onPress={() => loadUserFavorites()}>
-                        <Text className="text-white">Réessayer</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
-
-            {isLoading ? (
-                <View className="items-center justify-center flex-1">
-                    <ActivityIndicator size="large" color="#0000ff" />
-                </View>
-            ) : (
-                <FlatList
-                    data={cryptos}
-                    renderItem={renderCryptoItem}
-                    keyExtractor={item => item.id}
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={refreshing}
-                        //onRefresh={onRefresh}
-                        />
-                    }
-                />
-            )}
+            <FlatList
+                data={cryptos}
+                renderItem={renderCryptoItem}
+                keyExtractor={item => item.id}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                    />
+                }
+            />
         </SafeAreaView>
     );
 }
