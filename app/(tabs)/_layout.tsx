@@ -12,6 +12,7 @@ export default function TabLayout() {
             }}>
             <Stack.Screen name="index" options={{ title: "landingPage" }} />
             <Stack.Screen name="explore" options={{ title: "explorer" }} />
+            <Stack.Screen name="profile" options={{ title: "profil" }} />
         </Stack>
     );
 }
