@@ -16,7 +16,7 @@ export default function SignInScreen() {
         setLoading(true);
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            router.replace('/(tabs)/market');
+            router.replace('/(tabs)/content/market');
         } catch (error: any) {
             alert(error.message);
         } finally {

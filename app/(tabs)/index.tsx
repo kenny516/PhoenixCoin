@@ -1,12 +1,12 @@
 import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Platform, Dimensions, StatusBar as RNStatusBar } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import { Link, router } from 'expo-router';
 import { Feather, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
-import { PhoenixLogo } from '../../components/PhoenixLogo';
 
 const { width } = Dimensions.get('window');
 
 export default function LandingScreen() {
+
+
     const features = [
         {
             icon: 'shield',
@@ -60,7 +60,7 @@ export default function LandingScreen() {
                     <View className="px-4 mt-8">
                         <TouchableOpacity
                             className="bg-primary-600 p-4 rounded-[20px] elevation-3"
-                            onPress={() => router.push('/auth/sign-up')}>
+                            onPress={() => router.push('/auth/sign-in')}>
                             <Text className="text-lg font-bold text-center text-white">Commencer Maintenant</Text>
                         </TouchableOpacity>
                     </View>

@@ -1,28 +1,106 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Image, Platform, SafeAreaView, StatusBar, Alert, ScrollView, TextInput } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+import { imagekit } from '@/lib/imagekit';
+import { auth, db } from '@/firebase/firebaseConfig';
 
 export default function ProfileScreen() {
     const [image, setImage] = useState<string | null>(null);
+    const [loading, setLoading] = useState(true);
     const [userInfo, setUserInfo] = useState({
-        pseudo: "JohnDoe",
-        email: "john.doe@example.com",
-        dateNaissance: "01/01/1990",
-        telephone: "+261 34 00 000 00",
-        adresse: "Antananarivo, Madagascar"
+        pseudo: "",
+        email: "",
+        dateNaissance: "",
+        telephone: "",
+        adresse: ""
     });
 
-    const pickImage = async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-            alert('Désolé, nous avons besoin des permissions pour accéder à vos photos!');
-            return;
-        }
+    useEffect(() => {
+        getUserProfile();
+    }, []);
 
+    const getUserProfile = async () => {
+        try {
+            const user = auth.currentUser;
+            if (user) {
+                const docRef = doc(db, "profiles", user.uid);
+                const docSnap = await getDoc(docRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    setUserInfo({
+                        pseudo: data.username || '',
+                        email: user.email || '',
+                        dateNaissance: data.dateNaissance || '',
+                        telephone: data.telephone || '',
+                        adresse: data.adresse || ''
+                    });
+                    setImage(data.avatarUrl);
+                }
+            }
+        } catch (error) {
+            Alert.alert('Erreur', 'Impossible de charger le profil');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const uploadImage = async (uri: string) => {
+        try {
+            const response = await fetch(uri);
+            const blob = await response.blob();
+            const reader = new FileReader();
+
+            return new Promise((resolve, reject) => {
+                reader.onload = async () => {
+                    const base64data = reader.result as string;
+                    const base64File = base64data.split(',')[1];
+
+                    imagekit.upload({
+                        file: base64File,
+                        fileName: `profile-${Date.now()}.jpg`,
+                        tags: ['profile-picture'],
+                        signature: 'your-signature',
+                        token: 'your-token',
+                        expire: Math.floor(Date.now() / 1000) + 3600
+                    }, (error, result) => {
+                        if (error) reject(error);
+                        else resolve(result?.url);
+                    });
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        } catch (error) {
+            throw error;
+        }
+    };
+
+    const updateProfile = async (imageUri: string) => {
+        try {
+            const user = auth.currentUser;
+            if (!user) throw new Error('No user');
+
+            const imageUrl = await uploadImage(imageUri);
+            const userRef = doc(db, "profiles", user.uid);
+
+            await updateDoc(userRef, {
+                avatarUrl: imageUrl,
+                updatedAt: new Date()
+            });
+
+            setImage(imageUrl as string);
+        } catch (error) {
+            Alert.alert('Erreur', 'Impossible de mettre à jour le profil');
+        }
+    };
+
+    const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ["images"],
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [1, 1],
             quality: 1,
@@ -30,6 +108,7 @@ export default function ProfileScreen() {
 
         if (!result.canceled) {
             setImage(result.assets[0].uri);
+            await updateProfile(result.assets[0].uri);
         }
     };
 
@@ -48,6 +127,7 @@ export default function ProfileScreen() {
 
         if (!result.canceled) {
             setImage(result.assets[0].uri);
+            await updateProfile(result.assets[0].uri);
         }
     };
 
