@@ -62,10 +62,20 @@ export default function TabLayout() {
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: {
-                    height: 60,
+                    height: 64,
                     backgroundColor: '#ffffff',
-                    paddingHorizontal: 6,
-                    paddingVertical: 8,
+                    paddingHorizontal: 8,
+                    paddingVertical: 10,
+                    borderTopWidth: 1,
+                    borderTopColor: '#F1F5F9',
+                    elevation: 8,
+                    shadowColor: '#000',
+                    shadowOffset: {
+                        width: 0,
+                        height: -2,
+                    },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 4,
                 },
                 tabBarActiveTintColor: '#2563eb',
                 tabBarInactiveTintColor: '#94a3b8',
@@ -92,18 +102,35 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
-                name="explore"
+                name="portfolio"
                 options={{
-                    title: 'Explorer',
+                    title: 'Portefeuille',
                     tabBarIcon: ({ focused }) => (
                         <TabBarIcon
-                            name="compass"
+                            name="wallet"
                             color={focused ? '#2563eb' : '#94a3b8'}
                             focused={focused}
                         />
                     ),
                     tabBarLabel: ({ focused }) => (
-                        <TabBarLabel label="Explorer" focused={focused} />
+                        <TabBarLabel label="Portefeuille" focused={focused} />
+                    ),
+                }}
+            />
+
+            <Tabs.Screen
+                name="depot-retrait"
+                options={{
+                    title: 'Dépôt/Retrait',
+                    tabBarIcon: ({ focused }) => (
+                        <TabBarIcon
+                            name="bank-transfer"
+                            color={focused ? '#2563eb' : '#94a3b8'}
+                            focused={focused}
+                        />
+                    ),
+                    tabBarLabel: ({ focused }) => (
+                        <TabBarLabel label="Dépôt/Retrait" focused={focused} />
                     ),
                 }}
             />
@@ -121,22 +148,6 @@ export default function TabLayout() {
                     ),
                     tabBarLabel: ({ focused }) => (
                         <TabBarLabel label="Profil" focused={focused} />
-                    ),
-                }}
-            />
-            <Tabs.Screen
-                name="depot-retrait"
-                options={{
-                    title: 'Dépôt/Retrait',
-                    tabBarIcon: ({ focused }) => (
-                        <TabBarIcon
-                            name="bank-transfer"
-                            color={focused ? '#2563eb' : '#94a3b8'}
-                            focused={focused}
-                        />
-                    ),
-                    tabBarLabel: ({ focused }) => (
-                        <TabBarLabel label="Dépôt/Retrait" focused={focused} />
                     ),
                 }}
             />
