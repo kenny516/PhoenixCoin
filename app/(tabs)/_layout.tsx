@@ -11,8 +11,7 @@ export default function TabLayout() {
                 animation: 'slide_from_bottom',
             }}>
             <Stack.Screen name="index" options={{ title: "landingPage" }} />
-            <Stack.Screen name="explore" options={{ title: "explorer" }} />
-            <Stack.Screen name="profile" options={{ title: "profil" }} />
+            <Stack.Screen name='content' options={{ title: 'content' }} />
         </Stack>
     );
 }

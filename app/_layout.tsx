@@ -10,6 +10,7 @@ import "../global.css";
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { StatusBarManager } from '@/components/StatusBarManager';
+import 'react-native-url-polyfill/auto';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
