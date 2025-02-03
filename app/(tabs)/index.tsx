@@ -38,7 +38,7 @@ export default function LandingScreen() {
                             </View>
                             <TouchableOpacity
                                 className="bg-primary-500 px-5 py-2.5 rounded-full border border-white elevation-3"
-                                onPress={() => router.push('/profile')}>
+                                onPress={() => router.push('/auth/sign-in')}>
                                 <Text className="font-bold text-white">Connexion</Text>
                             </TouchableOpacity>
                         </View>
@@ -60,7 +60,7 @@ export default function LandingScreen() {
                     <View className="px-4 mt-8">
                         <TouchableOpacity
                             className="bg-primary-600 p-4 rounded-[20px] elevation-3"
-                            onPress={() => router.push('/auth/sign-in')}>
+                            onPress={() => router.push('/auth/sign-up')}>
                             <Text className="text-lg font-bold text-center text-white">Commencer Maintenant</Text>
                         </TouchableOpacity>
                     </View>

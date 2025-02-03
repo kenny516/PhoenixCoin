@@ -6,6 +6,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { imagekit } from '@/lib/imagekit';
 import { auth, db } from '@/firebase/firebaseConfig';
+import { signOut } from 'firebase/auth';
+import { router } from 'expo-router';
 
 export default function ProfileScreen() {
     const [image, setImage] = useState<string | null>(null);
@@ -42,6 +44,7 @@ export default function ProfileScreen() {
                 }
             }
         } catch (error) {
+            console.log('Error getting user profile:', error);
             Alert.alert('Erreur', 'Impossible de charger le profil');
         } finally {
             setLoading(false);
@@ -128,6 +131,15 @@ export default function ProfileScreen() {
         if (!result.canceled) {
             setImage(result.assets[0].uri);
             await updateProfile(result.assets[0].uri);
+        }
+    };
+
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            router.replace('/auth/sign-in');
+        } catch (error) {
+            Alert.alert('Erreur', 'Impossible de se déconnecter');
         }
     };
 
@@ -254,9 +266,27 @@ export default function ProfileScreen() {
                             <InfoRow label="Adresse" value={userInfo.adresse} icon="map-pin" />
                         </View>
                     </View>
-                </View>
 
-                <View className="h-6" />
+                    {/* Bouton de déconnexion */}
+                    <TouchableOpacity
+                        onPress={handleLogout}
+                        className="flex-row items-center justify-center w-full p-4 mt-4 space-x-2 bg-red-500 rounded-xl"
+                        style={{
+                            shadowColor: '#EF4444',
+                            shadowOffset: { width: 0, height: 4 },
+                            shadowOpacity: 0.2,
+                            shadowRadius: 6,
+                            elevation: 4
+                        }}
+                    >
+                        <Feather name="log-out" size={20} color="#fff" />
+                        <Text className="text-base font-bold text-white">
+                            Se déconnecter
+                        </Text>
+                    </TouchableOpacity>
+
+                    <View className="h-6" />
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
