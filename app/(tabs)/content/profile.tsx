@@ -4,10 +4,10 @@ import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { imagekit } from '@/lib/imagekit';
 import { auth, db } from '@/firebase/firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { router } from 'expo-router';
+import { ImageKitService } from '@/service/imageKitService';
 
 export default function ProfileScreen() {
     const [image, setImage] = useState<string | null>(null);
@@ -50,44 +50,16 @@ export default function ProfileScreen() {
             setLoading(false);
         }
     };
-    // send the image to imagekit
-    const uploadImage = async (uri: string) => {
-        try {
-            const response = await fetch(uri);
-            const blob = await response.blob();
-            const reader = new FileReader();
-
-            return new Promise((resolve, reject) => {
-                reader.onload = async () => {
-                    const base64data = reader.result as string;
-                    const base64File = base64data.split(',')[1];
-
-                    imagekit.upload({
-                        file: base64File,
-                        fileName: `profile-${Date.now()}.jpg`,
-                        tags: ['profile-picture'],
-                        signature: 'your-signature',
-                        token: 'your-token',
-                        expire: Math.floor(Date.now() / 1000) + 3600
-                    }, (error, result) => {
-                        if (error) reject(error);
-                        else resolve(result?.url);
-                    });
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
-        } catch (error) {
-            throw error;
-        }
-    };
 
     const updateProfile = async (imageUri: string) => {
         try {
             const user = auth.currentUser;
             if (!user) throw new Error('No user');
+            const imageService = new ImageKitService();
 
-            const imageUrl = await uploadImage(imageUri);
+
+            const imageUrl = await imageService.uploadImage(imageUri, "test");
+            console.log('Profile updated:' + imageUrl.url);
             const userRef = doc(db, "profiles", user.uid);
 
             await updateDoc(userRef, {
@@ -95,7 +67,7 @@ export default function ProfileScreen() {
                 updatedAt: new Date()
             });
 
-            setImage(imageUrl as string);
+            setImage(imageUrl.url);
         } catch (error) {
             Alert.alert('Erreur', 'Impossible de mettre à jour le profil');
         }
