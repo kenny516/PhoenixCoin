@@ -34,10 +34,6 @@ export default function RootLayout() {
     return (
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <StatusBarManager />
-            <StatusBar
-                style={colorScheme === 'dark' ? 'light' : 'dark'}
-                backgroundColor={colorScheme === 'dark' ? '#000' : '#fff'}
-            />
             <View style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
                 <Stack
                     screenOptions={{

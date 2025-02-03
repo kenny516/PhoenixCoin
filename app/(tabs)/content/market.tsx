@@ -156,7 +156,7 @@ export default function MarketScreen() {
                 </Text>
                 <TouchableOpacity onPress={() => toggleFavorite(item)}>
                     <MaterialCommunityIcons
-                        name={item.isFavorite ? "star" : "star-o"}
+                        name={item.isFavorite ? "star" : "star-outline"}
                         size={24}
                         color={item.isFavorite ? "#F59E0B" : "#9CA3AF"}
                     />
