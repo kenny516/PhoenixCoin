@@ -1,22 +1,34 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Image, ScrollView, Platform } from 'react-native';
-import { Link } from 'expo-router';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Image, ScrollView, Platform, StatusBar, ActivityIndicator } from 'react-native';
+import { Link, router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '@/firebase/firebaseConfig';
 
 export default function SignInScreen() {
+    const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleSignIn = () => {
-        // Implement sign in logic here
-        console.log('Sign in:', email, password);
+    const handleSignIn = async () => {
+        setLoading(true);
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            router.replace('/(tabs)/content/market');
+        } catch (error: any) {
+            alert(error.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-white" style={{
-            paddingTop: Platform.OS === 'android' ? 25 : 0
+        <SafeAreaView style={{
+            flex: 1,
+            backgroundColor: '#fff',
+            paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
         }}>
             <ScrollView
                 className="flex-1"
@@ -68,10 +80,15 @@ export default function SignInScreen() {
 
                         <TouchableOpacity
                             onPress={handleSignIn}
+                            disabled={loading}
                             className="p-4 mt-4 bg-primary-500 rounded-xl">
-                            <Text className="text-lg font-semibold text-center text-white">
-                                Se connecter
-                            </Text>
+                            {loading ? (
+                                <ActivityIndicator color="white" />
+                            ) : (
+                                <Text className="text-lg font-semibold text-center text-white">
+                                    Se connecter
+                                </Text>
+                            )}
                         </TouchableOpacity>
                         <View className="flex-row justify-center mt-4">
                             <Text className="text-text-muted">Vous n'avez pas de compte? </Text>

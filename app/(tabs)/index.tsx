@@ -1,12 +1,12 @@
 import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Platform, Dimensions, StatusBar as RNStatusBar } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
 import { Link, router } from 'expo-router';
 import { Feather, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
-import { PhoenixLogo } from '../../components/PhoenixLogo';
 
 const { width } = Dimensions.get('window');
 
 export default function LandingScreen() {
+
+
     const features = [
         {
             icon: 'shield',

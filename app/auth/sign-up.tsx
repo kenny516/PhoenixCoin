@@ -1,10 +1,15 @@
 import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Image, ScrollView, Platform } from 'react-native';
-import { Link } from 'expo-router';
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, Image, ScrollView, Platform, StatusBar, ActivityIndicator } from 'react-native';
+import { Link, router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../../firebase/firebaseConfig';
+
+
 
 export default function SignUpScreen() {
+    const [loading, setLoading] = useState(false);
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -38,15 +43,26 @@ export default function SignUpScreen() {
         return isValid;
     };
 
-    const handleSignUp = () => {
+    const handleSignUp = async () => {
         if (validateForm()) {
-            // Implement sign up logic here
-            console.log('Sign up:', name, email, password);
+            setLoading(true);
+            try {
+                await createUserWithEmailAndPassword(auth, email, password);
+                router.replace('/auth/sign-in');
+            } catch (error: any) {
+                alert(error.message);
+            } finally {
+                setLoading(false);
+            }
         }
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-white">
+        <SafeAreaView style={{
+            flex: 1,
+            backgroundColor: '#fff',
+            paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0
+        }}>
             <ScrollView
                 className="flex-1"
                 contentContainerStyle={{ flexGrow: 1 }}
@@ -109,10 +125,15 @@ export default function SignUpScreen() {
 
                         <TouchableOpacity
                             onPress={handleSignUp}
+                            disabled={loading}
                             className="p-4 mt-4 bg-primary-500 rounded-xl">
-                            <Text className="text-lg font-semibold text-center text-white">
-                                S'inscrire
-                            </Text>
+                            {loading ? (
+                                <ActivityIndicator color="white" />
+                            ) : (
+                                <Text className="text-lg font-semibold text-center text-white">
+                                    S'inscrire
+                                </Text>
+                            )}
                         </TouchableOpacity>
                         <View className="flex-row justify-center mt-4">
                             <Text className="text-gray-600">Vous avez déjà un compte? </Text>
