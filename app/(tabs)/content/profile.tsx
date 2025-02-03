@@ -50,7 +50,7 @@ export default function ProfileScreen() {
             setLoading(false);
         }
     };
-
+    // send the image to imagekit
     const uploadImage = async (uri: string) => {
         try {
             const response = await fetch(uri);
@@ -270,7 +270,7 @@ export default function ProfileScreen() {
                     {/* Bouton de déconnexion */}
                     <TouchableOpacity
                         onPress={handleLogout}
-                        className="flex-row items-center justify-center w-full p-4 mt-4 space-x-2 bg-red-500 rounded-xl"
+                        className="flex-row items-center justify-center w-1/2 gap-2 p-4 mx-auto mt-4 space-x-2 bg-red-500 rounded-xl"
                         style={{
                             shadowColor: '#EF4444',
                             shadowOffset: { width: 0, height: 4 },

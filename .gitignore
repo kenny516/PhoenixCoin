@@ -38,3 +38,7 @@ yarn-error.*
 app-example
 
 firebase/firebaseConfig.js
+
+utils/imagekit-auth.ts
+
+service/imageKitService.ts
