@@ -56,8 +56,7 @@ export default function ProfileScreen() {
             const user = auth.currentUser;
             if (!user) throw new Error('No user');
             const imageService = new ImageKitService();
-
-
+            console.log('Uploading image...');
             const imageUrl = await imageService.uploadImage(imageUri, "test");
             console.log('Profile updated:' + imageUrl.url);
             const userRef = doc(db, "profiles", user.uid);

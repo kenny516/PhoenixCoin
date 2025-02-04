@@ -117,7 +117,7 @@ export default function SignUpScreen() {
                                     secureTextEntry={!showPassword}
                                 />
                                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                                    <Feather name={showPassword ? "eye-off" : "eye"} size={20} color="#6B7280" />
+                                    <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#6B7280" />
                                 </TouchableOpacity>
                             </View>
                             {errors.password ? <Text className="mt-1 text-red-500">{errors.password}</Text> : null}
