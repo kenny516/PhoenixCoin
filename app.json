@@ -36,6 +36,15 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "owner": "andriantsirafychankenny",
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "238b62bb-a67f-4735-bd3b-a534b1bdd8ca"
+      }
     }
   }
 }
