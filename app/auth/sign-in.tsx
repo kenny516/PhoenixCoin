@@ -73,11 +73,6 @@ export default function SignInScreen() {
                                 </TouchableOpacity>
                             </View>
                         </View>
-
-                        <TouchableOpacity className="items-end">
-                            <Text className="text-primary-500">Mot de passe oublié?</Text>
-                        </TouchableOpacity>
-
                         <TouchableOpacity
                             onPress={handleSignIn}
                             disabled={loading}
