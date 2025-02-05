@@ -2,7 +2,6 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import 'react-native-reanimated';
@@ -32,7 +31,7 @@ export default function RootLayout() {
     }
 
     return (
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <>
             <StatusBarManager />
             <View style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
                 <Stack
@@ -46,6 +45,6 @@ export default function RootLayout() {
                     <Stack.Screen name="+not-found" />
                 </Stack>
             </View>
-        </ThemeProvider>
+        </>
     );
 }

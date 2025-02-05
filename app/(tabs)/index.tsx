@@ -38,7 +38,7 @@ export default function LandingScreen() {
                             </View>
                             <TouchableOpacity
                                 className="bg-primary-500 px-5 py-2.5 rounded-full border border-white elevation-3"
-                                onPress={() => router.push('/auth/sign-in')}>
+                                onPress={() => router.push('/(tabs)/content/market')}>
                                 <Text className="font-bold text-white">Connexion</Text>
                             </TouchableOpacity>
                         </View>
@@ -47,8 +47,8 @@ export default function LandingScreen() {
                     {/* Hero Section */}
                     <View className="px-4 pt-8">
                         <View className="items-center bg-white p-8 rounded-[24px] elevation-3 border-[1px] border-gray-200">
-                            <Text className="text-3xl font-bold text-center text-primary-800" style={{ lineHeight: 40 }}>
-                                Échangez des Cryptos en Toute Confiance
+                            <Text className="text-4xl font-bold text-center text-primary-800" style={{ lineHeight: 40 }}>
+                                Bienvenue sur Phoenix Coin
                             </Text>
                             <Text className="px-4 mt-4 text-base text-center text-gray-700">
                                 La plateforme de cryptomonnaie la plus fiable
@@ -63,21 +63,6 @@ export default function LandingScreen() {
                             onPress={() => router.push('/auth/sign-up')}>
                             <Text className="text-lg font-bold text-center text-white">Commencer Maintenant</Text>
                         </TouchableOpacity>
-                    </View>
-
-                    {/* Statistics */}
-                    <View className="flex-row gap-3 px-4 mt-8">
-                        {[
-                            { value: '95M+', label: 'Utilisateurs vérifiés', icon: 'users' },
-                            { value: '100+', label: 'Pays', icon: 'globe' },
-                            { value: '1T+€', label: 'Volume d\'échange', icon: 'trending-up' }
-                        ].map((stat, index) => (
-                            <View key={index} className="flex-1 items-center bg-white p-4 rounded-[20px] elevation-2 border-[1px] border-gray-200">
-                                <Feather name={stat.icon} size={24} color="#2563EB" />
-                                <Text className="mt-2 text-lg font-bold text-primary-700">{stat.value}</Text>
-                                <Text className="mt-1 text-[12px] text-center text-gray-600">{stat.label}</Text>
-                            </View>
-                        ))}
                     </View>
 
                     {/* Features */}

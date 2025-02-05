@@ -47,7 +47,7 @@ export default function DepotRetraitScreen() {
         <SafeAreaView className="flex-1 bg-gray-50">
             <LinearGradient
                 colors={['#2563EB', '#3B82F6']}
-                className="p-6"
+                className="p-4"
             >
                 <Text className="text-2xl font-bold text-white">
                     {type === 'depot' ? 'Dépôt' : 'Retrait'}

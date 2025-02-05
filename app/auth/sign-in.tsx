@@ -18,7 +18,7 @@ export default function SignInScreen() {
             await signInWithEmailAndPassword(auth, email, password);
             router.replace('/(tabs)/content/market');
         } catch (error: any) {
-            alert(error.message);
+            alert("Erreur lors de la connexion:\n veuillez verifier vos identifiants");
         } finally {
             setLoading(false);
         }
@@ -69,15 +69,10 @@ export default function SignInScreen() {
                                     secureTextEntry={!showPassword}
                                 />
                                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                                    <Feather name={showPassword ? "eye-off" : "eye"} size={20} color="#6B7280" />
+                                    <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#6B7280" />
                                 </TouchableOpacity>
                             </View>
                         </View>
-
-                        <TouchableOpacity className="items-end">
-                            <Text className="text-primary-500">Mot de passe oublié?</Text>
-                        </TouchableOpacity>
-
                         <TouchableOpacity
                             onPress={handleSignIn}
                             disabled={loading}
