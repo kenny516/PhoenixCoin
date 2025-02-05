@@ -10,10 +10,21 @@ export default {
         scheme: "phoenixcoin",
         userInterfaceStyle: "automatic",
         newArchEnabled: true,
+        updates: {
+            url: "https://u.expo.dev/238b62bb-a67f-4735-bd3b-a534b1bdd8ca",
+        },
+        runtimeVersion: {
+            policy: "appVersion",
+        },
         ios: {
             supportsTablet: true
         },
         android: {
+            adaptiveIcon: {
+                foregroundImage: "./assets/images/logo.png",
+                backgroundColor: "#FFFFFF"
+            },
+            buildType: "apk",
             adaptiveIcon: {
                 foregroundImage: "./assets/images/adaptive-icon.png",
                 backgroundColor: "#ffffff"

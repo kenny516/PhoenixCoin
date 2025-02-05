@@ -12,6 +12,7 @@
             "supportsTablet": true
         },
         "android": {
+            "buildType": "apk",
             "adaptiveIcon": {
                 "foregroundImage": "./assets/images/adaptive-icon.png",
                 "backgroundColor": "#ffffff"

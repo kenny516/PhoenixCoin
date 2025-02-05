@@ -1,62 +1,97 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ScrollView } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
+import { LineChart } from 'react-native-gifted-charts';
+import BitcoinEvolutionChart from '@/components/ui/BitcoinEvolutionChart';
 
 // Type pour une crypto-monnaie
-interface Crypto {
+type Crypto = {
     id: string;
-    symbol: string;
+    designation: string;
     name: string;
-    currentPrice: number;
-    priceChangePercentage24h: number;
-    isFavorite?: boolean;
-}
+    coursActuel: number;
+    dateCours: Date;
+    priceChangePercentage24h: number; // Pourcentage de changement sur 24h
+    isFavorite?: boolean; // Champ optionnel pour savoir si c'est un favori
+};
 
-// Données statiques
+// Données statiques avec valeurs par défaut pour les nouvelles propriétés
 const staticCryptos: Crypto[] = [
     {
-        id: 'bitcoin',
-        symbol: 'BTC',
+        id: '1',
+        designation: 'BTC',
         name: 'Bitcoin',
-        currentPrice: 35000,
+        coursActuel: 39000,
+        dateCours: new Date(),
         priceChangePercentage24h: 2.5,
-        isFavorite: false
+        isFavorite: false,
     },
     {
-        id: 'ethereum',
-        symbol: 'ETH',
+        id: '2',
+        designation: 'ETH',
         name: 'Ethereum',
-        currentPrice: 2000,
-        priceChangePercentage24h: -1.2,
-        isFavorite: false
+        coursActuel: 2200,
+        dateCours: new Date(),
+        priceChangePercentage24h: -1.3,
+        isFavorite: false,
     },
     {
-        id: 'ripple',
-        symbol: 'XRP',
-        name: 'Ripple',
-        currentPrice: 0.5,
-        priceChangePercentage24h: 5.8,
-        isFavorite: false
+        id: '3',
+        designation: 'BNB',
+        name: 'Binance Coin',
+        coursActuel: 300,
+        dateCours: new Date(),
+        priceChangePercentage24h: 0.8,
+        isFavorite: false,
     },
     {
-        id: 'cardano',
-        symbol: 'ADA',
-        name: 'Cardano',
-        currentPrice: 1.2,
-        priceChangePercentage24h: -0.7,
-        isFavorite: false
+        id: '4',
+        designation: 'ETH',
+        name: 'Ethereum',
+        coursActuel: 2200,
+        dateCours: new Date(),
+        priceChangePercentage24h: -1.3,
+        isFavorite: false,
     },
     {
-        id: 'solana',
-        symbol: 'SOL',
-        name: 'Solana',
-        currentPrice: 150,
-        priceChangePercentage24h: 8.3,
-        isFavorite: false
+        id: '5',
+        designation: 'BNB',
+        name: 'Binance Coin',
+        coursActuel: 300,
+        dateCours: new Date(),
+        priceChangePercentage24h: 0.8,
+        isFavorite: false,
+    },
+    {
+        id: '6',
+        designation: 'ETH',
+        name: 'Ethereum',
+        coursActuel: 2200,
+        dateCours: new Date(),
+        priceChangePercentage24h: -1.3,
+        isFavorite: false,
+    },
+    {
+        id: '7',
+        designation: 'BNB',
+        name: 'Binance Coin',
+        coursActuel: 300,
+        dateCours: new Date(),
+        priceChangePercentage24h: 0.8,
+        isFavorite: false,
     }
+];
+const mockChartData = [
+    { value: 37000, date: '1 Jan' },
+    { value: 37500, date: '2 Jan' },
+    { value: 39000, date: '3 Jan' },
+    { value: 38500, date: '4 Jan' },
+    { value: 40000, date: '5 Jan' },
+    { value: 39500, date: '6 Jan' },
+    { value: 39000, date: '7 Jan' },
 ];
 
 export default function MarketScreen() {
@@ -75,7 +110,7 @@ export default function MarketScreen() {
                 const q = query(favoritesRef, where("userId", "==", user.uid));
                 const querySnapshot = await getDocs(q);
 
-                const favoriteIds = new Set();
+                const favoriteIds = new Set<string>();
                 querySnapshot.forEach((doc) => {
                     favoriteIds.add(doc.data().cryptoId);
                 });
@@ -107,10 +142,12 @@ export default function MarketScreen() {
             const querySnapshot = await getDocs(q);
 
             if (crypto.isFavorite) {
+                // Supprimer les favoris
                 querySnapshot.forEach(async (doc) => {
                     await deleteDoc(doc.ref);
                 });
             } else {
+                // Ajouter aux favoris
                 await addDoc(favoritesRef, {
                     userId: user.uid,
                     cryptoId: crypto.id,
@@ -118,11 +155,14 @@ export default function MarketScreen() {
                 });
             }
 
-            setCryptos(cryptos.map(c =>
-                c.id === crypto.id
-                    ? { ...c, isFavorite: !c.isFavorite }
-                    : c
-            ));
+            // Mise à jour locale de l'état
+            setCryptos(currentCryptos =>
+                currentCryptos.map(c =>
+                    c.id === crypto.id
+                        ? { ...c, isFavorite: !crypto.isFavorite }
+                        : c
+                )
+            );
         } catch (error) {
             Alert.alert('Erreur', 'Impossible de mettre à jour les favoris');
         }
@@ -139,19 +179,17 @@ export default function MarketScreen() {
 
     const renderCryptoItem = ({ item }: { item: Crypto }) => (
         <TouchableOpacity
-            className="flex-row items-center justify-between p-4 bg-white border-b border-gray-100"
-            onPress={() => {/* Navigation vers détails */ }}>
+            className="flex-row items-center justify-between p-6 mb-2 bg-white border-gray-600 border-hairline rounded-xl"
+            onPress={() => { /* Navigation vers détails */ }}>
             <View className="flex-row items-center">
-                <Text className="text-lg font-bold">{item.symbol}</Text>
                 <Text className="ml-2 text-gray-500">{item.name}</Text>
             </View>
 
             <View className="flex-row items-center">
                 <Text className="mr-4 text-lg font-medium">
-                    €{item.currentPrice.toLocaleString()}
+                    €{item.coursActuel.toLocaleString()}
                 </Text>
-                <Text className={`mr-4 ${item.priceChangePercentage24h >= 0 ? 'text-green-500' : 'text-red-500'
-                    }`}>
+                <Text className={`mr-4 ${item.priceChangePercentage24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                     {item.priceChangePercentage24h.toFixed(2)}%
                 </Text>
                 <TouchableOpacity onPress={() => toggleFavorite(item)}>
@@ -166,22 +204,33 @@ export default function MarketScreen() {
     );
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
-            <View className="p-4 p-6 bg-primary-600">
+        <SafeAreaView className="flex-1 h-full bg-gray-50">
+            <View className="p-6 bg-primary-600">
                 <Text className="text-2xl font-bold text-white">Marché</Text>
             </View>
+            <View className='w-full h-full gap-2 p-2'>
+                {/* graphe herer */}
 
-            <FlatList
-                data={cryptos}
-                renderItem={renderCryptoItem}
-                keyExtractor={item => item.id}
-                refreshControl={
-                    <RefreshControl
-                        refreshing={refreshing}
-                        onRefresh={onRefresh}
+                <View className='w-full h-2/5 '>
+                    <BitcoinEvolutionChart />
+                </View>
+                <View className='p-4 rounded-lg border-hairline h-3/6'>
+                    <Text className='pb-2 text-xl '>Liste des cours cryptomonnaies</Text>
+                    <FlatList
+                        data={cryptos}
+                        renderItem={renderCryptoItem}
+                        keyExtractor={item => item.id}
+                        refreshControl={
+                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                        }
+                        contentContainerStyle={{ paddingBottom: 16 }} // Espace supplémentaire en bas
+                        className="py-4 -mb-4 border-t-hairline"
+                        showsVerticalScrollIndicator={false}
                     />
-                }
-            />
+
+                </View>
+            </View>
+
         </SafeAreaView>
     );
 }
