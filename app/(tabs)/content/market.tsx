@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
@@ -7,96 +7,20 @@ import BitcoinEvolutionChart from '@/components/ui/BitcoinEvolutionChart';
 import { ChartDataPoint, CoursCrypto, Crypto } from '@/utils/type';
 
 
-
-// Données statiques avec valeurs par défaut pour les nouvelles propriétés
-const staticCryptos: CoursCrypto[] = [
-    {
-        id: '1',
-        designation: 'BTC',
-        name: 'Bitcoin',
-        coursActuel: 39000,
-        dateCours: new Date(),
-        priceChangePercentage24h: 2.5,
-        isFavorite: false,
-    },
-    {
-        id: '2',
-        designation: 'ETH',
-        name: 'Ethereum',
-        coursActuel: 2200,
-        dateCours: new Date(),
-        priceChangePercentage24h: -1.3,
-        isFavorite: false,
-    },
-    {
-        id: '3',
-        designation: 'BNB',
-        name: 'Binance Coin',
-        coursActuel: 300,
-        dateCours: new Date(),
-        priceChangePercentage24h: 0.8,
-        isFavorite: false,
-    },
-    {
-        id: '4',
-        designation: 'ETH',
-        name: 'Ethereum',
-        coursActuel: 2200,
-        dateCours: new Date(),
-        priceChangePercentage24h: -1.3,
-        isFavorite: false,
-    },
-    {
-        id: '5',
-        designation: 'BNB',
-        name: 'Binance Coin',
-        coursActuel: 300,
-        dateCours: new Date(),
-        priceChangePercentage24h: 0.8,
-        isFavorite: false,
-    },
-    {
-        id: '6',
-        designation: 'ETH',
-        name: 'Ethereum',
-        coursActuel: 2200,
-        dateCours: new Date(),
-        priceChangePercentage24h: -1.3,
-        isFavorite: false,
-    },
-    {
-        id: '7',
-        designation: 'BNB',
-        name: 'Binance Coin',
-        coursActuel: 300,
-        dateCours: new Date(),
-        priceChangePercentage24h: 0.8,
-        isFavorite: false,
-    }
-];
-
-
-const mockChartData = [
-    { value: 37000, date: '1 Jan' },
-    { value: 37500, date: '2 Jan' },
-    { value: 39000, date: '3 Jan' },
-    { value: 38500, date: '4 Jan' },
-    { value: 40000, date: '5 Jan' },
-    { value: 39500, date: '6 Jan' },
-    { value: 39000, date: '7 Jan' },
-];
-
-
+// ajoute moi un loading lors du fetch de donne avant d afficher le contenue
 export default function MarketScreen() {
+    const [isLoading, setIsLoading] = useState(true);
     const [cryptos, setCryptos] = useState<Crypto[]>([]);
     const [graphContent, setGraphContent] = useState<ChartDataPoint[] | undefined>(undefined);
-    const [selectedCrypto, setSelectedCrypto] = useState<Crypto | null>(null);
+    const [selectedCrypto, setSelectedCrypto] = useState<Crypto>();
     const [refreshing, setRefreshing] = useState(false);
 
 
+
     useEffect(() => {
-        loadCrypto();
-        //loadUserFavorites();
+        loadCrypto().finally(() => {
+            setIsLoading(false);
+        });
     }, []);
 
     const loadUserFavorites = async () => {
@@ -166,35 +90,35 @@ export default function MarketScreen() {
     };
 
     const loadCrypto = async () => {
-        const listeCryptoRef = collection(db, "cryptomonnaies");
-        const requette = query(listeCryptoRef);
-        const resultats = await getDocs(requette);
+        try {
+            const listeCryptoRef = collection(db, "cryptomonnaies");
+            const requette = query(listeCryptoRef);
+            const resultats = await getDocs(requette);
 
-        const listeCoursCrypto = new Set<Crypto>;
-        resultats.forEach((doc) => {
-            listeCoursCrypto.add({
-                id: doc.data().id,
-                designation: doc.data().designation,
+            const listeCoursCrypto: Crypto[] = [];
+            resultats.forEach((doc) => {
+                listeCoursCrypto.push({
+                    id: doc.data().id,
+                    designation: doc.data().designation,
+                });
             });
-        })
-        console.log(listeCoursCrypto);
-        setCryptos(Array.from(listeCoursCrypto));
 
-        if (cryptos?.length > 0) {
-            showGraphOfCryptoSelected(cryptos[0]);
-        }
-        else {
+            setCryptos(listeCoursCrypto);
 
+            // Si on a des cryptos, on affiche le graphe de la première
+            if (listeCoursCrypto.length > 0) {
+                await showGraphOfCryptoSelected(listeCoursCrypto[0]);
+            }
+        } catch (error) {
+            console.error("Erreur lors du chargement des cryptos:", error);
+            Alert.alert("Erreur", "Impossible de charger les cryptomonnaies");
         }
-    }
+    };
 
     // prendre la liste cours_crypto 
     const onRefresh = async () => {
         setRefreshing(true);
         await loadCrypto();
-
-
-
         //setCryptos(staticCryptos);
         setRefreshing(false);
     };
@@ -243,30 +167,36 @@ export default function MarketScreen() {
             <View className="p-6 bg-primary-600">
                 <Text className="text-2xl font-bold text-white">Marché</Text>
             </View>
-            <View className='w-full h-full gap-4 p-2'>
-                {/* graphe herer */}
-                <View className='w-full h-2/5'>
-                    <BitcoinEvolutionChart
-                        data={graphContent}
-                    />
+            {isLoading ? (
+                <View className="items-center justify-center flex-1">
+                    <ActivityIndicator size="large" color="#0000ff" />
+                    <Text className="mt-2">Chargement des données...</Text>
                 </View>
-                <View className='items-center w-full p-4 rounded-lg border-hairline h-3/6'>
-                    <Text className='pb-2 text-xl font-bold '>Cryptomonnaies sur le marché</Text>
-                    <FlatList
-                        data={cryptos}
-                        renderItem={renderCryptoItem}
-                        keyExtractor={item => item.id}
-                        refreshControl={
-                            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                        }
-                        contentContainerStyle={{ paddingBottom: 16 }} // Espace supplémentaire en bas
-                        className="w-full py-4 -mb-4 border-t-hairline"
-                        showsVerticalScrollIndicator={false}
-                    />
+            ) : (
+                <View className='w-full h-full gap-4 p-2'>
+                    <View className='w-full h-2/5'>
+                        <BitcoinEvolutionChart
+                            data={graphContent}
+                            title={selectedCrypto?.designation}
+                        />
+                    </View>
+                    <View className='items-center w-full p-4 rounded-lg border-hairline h-3/6'>
+                        <Text className='pb-2 text-xl font-bold '>Cryptomonnaies sur le marché</Text>
+                        <FlatList
+                            data={cryptos}
+                            renderItem={renderCryptoItem}
+                            keyExtractor={item => item.id}
+                            refreshControl={
+                                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                            }
+                            contentContainerStyle={{ paddingBottom: 16 }} // Espace supplémentaire en bas
+                            className="w-full py-4 -mb-4 border-t-hairline"
+                            showsVerticalScrollIndicator={false}
+                        />
 
+                    </View>
                 </View>
-            </View>
-
+            )}
         </SafeAreaView>
     );
 }

@@ -19,7 +19,6 @@ const mockChartData: ChartDataPoint[] = [
 const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
     data = mockChartData,
     title = "Bitcoin",
-    devise = "EUR",
     deviseSymbol = "Ar"
 }) => {
     // On définit une marge globale de 32 (16px de chaque côté)
