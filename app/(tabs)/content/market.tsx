@@ -1,25 +1,15 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ScrollView } from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
-import { LineChart } from 'react-native-gifted-charts';
 import BitcoinEvolutionChart from '@/components/ui/BitcoinEvolutionChart';
+import { ChartDataPoint, CoursCrypto, Crypto } from '@/utils/type';
 
-// Type pour une crypto-monnaie
-type Crypto = {
-    id: string;
-    designation: string;
-    name: string;
-    coursActuel: number;
-    dateCours: Date;
-    priceChangePercentage24h: number; // Pourcentage de changement sur 24h
-    isFavorite?: boolean; // Champ optionnel pour savoir si c'est un favori
-};
+
 
 // Données statiques avec valeurs par défaut pour les nouvelles propriétés
-const staticCryptos: Crypto[] = [
+const staticCryptos: CoursCrypto[] = [
     {
         id: '1',
         designation: 'BTC',
@@ -84,6 +74,8 @@ const staticCryptos: Crypto[] = [
         isFavorite: false,
     }
 ];
+
+
 const mockChartData = [
     { value: 37000, date: '1 Jan' },
     { value: 37500, date: '2 Jan' },
@@ -94,12 +86,17 @@ const mockChartData = [
     { value: 39000, date: '7 Jan' },
 ];
 
+
 export default function MarketScreen() {
-    const [cryptos, setCryptos] = useState<Crypto[]>(staticCryptos);
+    const [cryptos, setCryptos] = useState<Crypto[]>([]);
+    const [graphContent, setGraphContent] = useState<ChartDataPoint[] | undefined>(undefined);
+    const [selectedCrypto, setSelectedCrypto] = useState<Crypto | null>(null);
     const [refreshing, setRefreshing] = useState(false);
 
+
     useEffect(() => {
-        loadUserFavorites();
+        loadCrypto();
+        //loadUserFavorites();
     }, []);
 
     const loadUserFavorites = async () => {
@@ -127,7 +124,7 @@ export default function MarketScreen() {
         }
     };
 
-    const toggleFavorite = async (crypto: Crypto) => {
+    const toggleFavorite = async (crypto: CoursCrypto) => {
         try {
             const user = auth.currentUser;
             if (!user) throw new Error('No user');
@@ -168,38 +165,76 @@ export default function MarketScreen() {
         }
     };
 
-    const onRefresh = () => {
+    const loadCrypto = async () => {
+        const listeCryptoRef = collection(db, "cryptomonnaies");
+        const requette = query(listeCryptoRef);
+        const resultats = await getDocs(requette);
+
+        const listeCoursCrypto = new Set<Crypto>;
+        resultats.forEach((doc) => {
+            listeCoursCrypto.add({
+                id: doc.data().id,
+                designation: doc.data().designation,
+            });
+        })
+        console.log(listeCoursCrypto);
+        setCryptos(Array.from(listeCoursCrypto));
+
+        if (cryptos?.length > 0) {
+            showGraphOfCryptoSelected(cryptos[0]);
+        }
+        else {
+
+        }
+    }
+
+    // prendre la liste cours_crypto 
+    const onRefresh = async () => {
         setRefreshing(true);
-        // Simuler un délai de chargement
-        setTimeout(() => {
-            setCryptos(staticCryptos);
-            setRefreshing(false);
-        }, 1000);
+        await loadCrypto();
+
+
+
+        //setCryptos(staticCryptos);
+        setRefreshing(false);
     };
+
+    const showGraphOfCryptoSelected = async (crypto: Crypto) => {
+        setSelectedCrypto(crypto);
+        const listeCoursCryptoRef = collection(db, "cours_crypto");
+        const requette = query(listeCoursCryptoRef, where("id_cryptomonnaie", "==", crypto.id));
+        const resultats = await getDocs(requette);
+
+        const listeCoursCrypto = new Set<ChartDataPoint>;
+        resultats.forEach((doc) => {
+            listeCoursCrypto.add({
+                value: doc.data().cours_actuel,
+                date: doc.data().date_cours
+            });
+        })
+
+        setGraphContent(Array.from(listeCoursCrypto));
+    }
 
     const renderCryptoItem = ({ item }: { item: Crypto }) => (
         <TouchableOpacity
             className="flex-row items-center justify-between p-6 mb-2 bg-white border-gray-600 border-hairline rounded-xl"
-            onPress={() => { /* Navigation vers détails */ }}>
+            onPress={() => {
+                showGraphOfCryptoSelected(item);
+            }}>
             <View className="flex-row items-center">
-                <Text className="ml-2 text-gray-500">{item.name}</Text>
+                <Text className="ml-2 text-gray-500">{item.designation}</Text>
             </View>
 
-            <View className="flex-row items-center">
-                <Text className="mr-4 text-lg font-medium">
-                    €{item.coursActuel.toLocaleString()}
-                </Text>
-                <Text className={`mr-4 ${item.priceChangePercentage24h >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {item.priceChangePercentage24h.toFixed(2)}%
-                </Text>
+            {/*            <View className="flex-row items-center">
                 <TouchableOpacity onPress={() => toggleFavorite(item)}>
-                    <MaterialCommunityIcons
-                        name={item.isFavorite ? "star" : "star-outline"}
-                        size={24}
-                        color={item.isFavorite ? "#F59E0B" : "#9CA3AF"}
+                    <Fontisto
+                        name="favorite"
+                        size={28}
+                        color={item.isFavorite ? "#F59E0B" : "#dddddd"}
                     />
                 </TouchableOpacity>
-            </View>
+            </View> */}
         </TouchableOpacity>
     );
 
@@ -208,14 +243,15 @@ export default function MarketScreen() {
             <View className="p-6 bg-primary-600">
                 <Text className="text-2xl font-bold text-white">Marché</Text>
             </View>
-            <View className='w-full h-full gap-2 p-2'>
+            <View className='w-full h-full gap-4 p-2'>
                 {/* graphe herer */}
-
-                <View className='w-full h-2/5 '>
-                    <BitcoinEvolutionChart />
+                <View className='w-full h-2/5'>
+                    <BitcoinEvolutionChart
+                        data={graphContent}
+                    />
                 </View>
-                <View className='p-4 rounded-lg border-hairline h-3/6'>
-                    <Text className='pb-2 text-xl '>Liste des cours cryptomonnaies</Text>
+                <View className='items-center w-full p-4 rounded-lg border-hairline h-3/6'>
+                    <Text className='pb-2 text-xl font-bold '>Cryptomonnaies sur le marché</Text>
                     <FlatList
                         data={cryptos}
                         renderItem={renderCryptoItem}
@@ -224,7 +260,7 @@ export default function MarketScreen() {
                             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                         }
                         contentContainerStyle={{ paddingBottom: 16 }} // Espace supplémentaire en bas
-                        className="py-4 -mb-4 border-t-hairline"
+                        className="w-full py-4 -mb-4 border-t-hairline"
                         showsVerticalScrollIndicator={false}
                     />
 
@@ -234,3 +270,7 @@ export default function MarketScreen() {
         </SafeAreaView>
     );
 }
+
+
+
+

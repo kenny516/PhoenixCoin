@@ -59,6 +59,7 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="market"
                 options={{
+                    title: 'marché',
                     tabBarIcon: ({ focused }) => (
                         <TabBarIcon
                             name="chart-line"

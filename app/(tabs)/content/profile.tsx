@@ -8,6 +8,7 @@ import { auth, db } from '@/firebase/firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { router } from 'expo-router';
 import { ImageKitService } from '@/service/imageKitService';
+import Toast from "react-native-toast-message";
 
 export default function ProfileScreen() {
     const [image, setImage] = useState<string | null>(null);
@@ -65,8 +66,12 @@ export default function ProfileScreen() {
                 avatarUrl: imageUrl,
                 updatedAt: new Date()
             });
-
             setImage(imageUrl.url);
+            Toast.show({
+                type: "success",
+                text1: "Succès",
+                text2: "photo de profiele modifier ✅",
+            });
         } catch (error) {
             Alert.alert('Erreur', 'Impossible de mettre à jour le profil');
         }
