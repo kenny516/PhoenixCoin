@@ -2,14 +2,15 @@
 import ImageKit from 'imagekit-javascript';
 import { imagekitAuth } from '../utils/imagekit-auth';
 import * as FileSystem from 'expo-file-system';
+import Constants from 'expo-constants';
 
-class ImageKitService {
+export class ImageKitService {
     private imagekit: ImageKit;
 
     constructor() {
         this.imagekit = new ImageKit({
-            publicKey: "",
-            urlEndpoint: "",
+            publicKey: Constants.expoConfig?.extra?.imageKitPublicKey || "",
+            urlEndpoint: Constants.expoConfig?.extra?.imageKitUrlEndpoint || "",
         });
     }
 
@@ -32,16 +33,13 @@ class ImageKitService {
                 tags: ["react-native"],
                 folder: "/uploads"
             };
-
             const result = await this.imagekit.upload(uploadOptions);
-
             // Enregistrer le résultat dans Firestore si nécessaire
             return {
                 url: result.url,
                 thumbnailUrl: result.thumbnailUrl,
                 fileId: result.fileId
             };
-
         } catch (error) {
             console.error('Erreur upload:', error);
             throw error;
