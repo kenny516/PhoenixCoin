@@ -31,7 +31,7 @@ export default function RootLayout() {
     }
 
     return (
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <>
             <StatusBarManager />
             <View style={{ flex: 1, backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
                 <Stack
@@ -45,6 +45,6 @@ export default function RootLayout() {
                     <Stack.Screen name="+not-found" />
                 </Stack>
             </View>
-        </ThemeProvider>
+        </>
     );
 }

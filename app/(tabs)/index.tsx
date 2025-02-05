@@ -38,7 +38,7 @@ export default function LandingScreen() {
                             </View>
                             <TouchableOpacity
                                 className="bg-primary-500 px-5 py-2.5 rounded-full border border-white elevation-3"
-                                onPress={() => router.push('/auth/sign-in')}>
+                                onPress={() => router.push('/(tabs)/content/market')}>
                                 <Text className="font-bold text-white">Connexion</Text>
                             </TouchableOpacity>
                         </View>

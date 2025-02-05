@@ -1,20 +1,24 @@
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { View, Text, Platform, Animated, Pressable } from 'react-native';
+import { View, Text, Platform, Animated } from 'react-native';
 import { useMemo } from 'react';
 
 const TabBarIcon = ({ name, color, focused }: { name: any; color: string; focused: boolean }) => {
     return (
-        <Animated.View>
+        <Animated.View style={{
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 4,
+        }}>
             <MaterialCommunityIcons
                 name={name}
-                size={focused ? 28 : 20}
+                size={22}
                 color={color}
                 style={{
-                    opacity: focused ? 1 : 0.7
+                    opacity: focused ? 1 : 0.7,
+                    transform: [{ scale: focused ? 1.1 : 1 }],
                 }}
             />
-
         </Animated.View>
     );
 };
@@ -23,31 +27,43 @@ export default function TabLayout() {
     return (
         <Tabs
             screenOptions={{
+                animation: 'shift',
                 headerShown: false,
                 tabBarLabelStyle: {
-                    fontSize: 10
+                    fontSize: 11,
+                    fontWeight: '500',
+                    marginBottom: 4,
                 },
                 tabBarStyle: {
-                    borderColor: '#ffffff',
-                    height: 64,
+                    height: 56,
                     backgroundColor: '#ffffff',
-                    paddingHorizontal: 8,
-                    paddingVertical: 10,
+                    borderTopWidth: 0,
+                    elevation: 8,
+                    shadowColor: '#000',
+                    shadowOffset: {
+                        width: 0,
+                        height: -2,
+                    },
+                    shadowOpacity: 0.1,
+                    shadowRadius: 3,
+                    paddingHorizontal: 10,
+                    paddingBottom: Platform.OS === 'ios' ? 20 : 10,
                 },
                 tabBarActiveTintColor: '#2563eb',
-                tabBarInactiveTintColor: '#94a3b8',
+                tabBarInactiveTintColor: '#64748B',
                 tabBarShowLabel: true,
                 tabBarItemStyle: {
-                    padding: 6,
+                    padding: 4,
                 },
             }}>
             <Tabs.Screen
                 name="market"
                 options={{
+                    title: 'marché',
                     tabBarIcon: ({ focused }) => (
                         <TabBarIcon
                             name="chart-line"
-                            color={focused ? '#2563eb' : '#94a3b8'}
+                            color={focused ? '#2563eb' : '#64748B'}
                             focused={focused}
                         />
                     ),
@@ -61,7 +77,7 @@ export default function TabLayout() {
                     tabBarIcon: ({ focused }) => (
                         <TabBarIcon
                             name="wallet"
-                            color={focused ? '#2563eb' : '#94a3b8'}
+                            color={focused ? '#2563eb' : '#64748B'}
                             focused={focused}
                         />
                     ),
@@ -75,7 +91,7 @@ export default function TabLayout() {
                     tabBarIcon: ({ focused }) => (
                         <TabBarIcon
                             name="bank"
-                            color={focused ? '#2563eb' : '#94a3b8'}
+                            color={focused ? '#2563eb' : '#64748B'}
                             focused={focused}
                         />
                     ),
@@ -85,11 +101,11 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="profile"
                 options={{
-                    title: 'Profil',
+                    title: 'profile',
                     tabBarIcon: ({ focused }) => (
                         <TabBarIcon
-                            name="account"
-                            color={focused ? '#2563eb' : '#94a3b8'}
+                            name="account-outline"
+                            color={focused ? '#2563eb' : '#64748B'}
                             focused={focused}
                         />
                     ),

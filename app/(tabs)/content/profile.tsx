@@ -8,6 +8,7 @@ import { auth, db } from '@/firebase/firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { router } from 'expo-router';
 import { ImageKitService } from '@/service/imageKitService';
+import Toast from "react-native-toast-message";
 
 export default function ProfileScreen() {
     const [image, setImage] = useState<string | null>(null);
@@ -65,8 +66,12 @@ export default function ProfileScreen() {
                 avatarUrl: imageUrl,
                 updatedAt: new Date()
             });
-
             setImage(imageUrl.url);
+            Toast.show({
+                type: "success",
+                text1: "Succès",
+                text2: "photo de profiele modifier ✅",
+            });
         } catch (error) {
             Alert.alert('Erreur', 'Impossible de mettre à jour le profil');
         }
@@ -236,25 +241,26 @@ export default function ProfileScreen() {
                             <InfoRow label="Téléphone" value={userInfo.telephone} icon="phone" />
                             <InfoRow label="Adresse" value={userInfo.adresse} icon="map-pin" />
                         </View>
+                        {/* Bouton de déconnexion */}
+                        <TouchableOpacity
+                            onPress={handleLogout}
+                            className="flex-row items-center justify-center w-1/2 gap-2 p-4 mx-auto mt-4 space-x-2 bg-red-500 rounded-xl"
+                            style={{
+                                shadowColor: '#EF4444',
+                                shadowOffset: { width: 0, height: 4 },
+                                shadowOpacity: 0.2,
+                                shadowRadius: 6,
+                                elevation: 4
+                            }}
+                        >
+                            <Feather name="log-out" size={20} color="#fff" />
+                            <Text className="text-base font-bold text-white">
+                                Se déconnecter
+                            </Text>
+                        </TouchableOpacity>
                     </View>
 
-                    {/* Bouton de déconnexion */}
-                    <TouchableOpacity
-                        onPress={handleLogout}
-                        className="flex-row items-center justify-center w-1/2 gap-2 p-4 mx-auto mt-4 space-x-2 bg-red-500 rounded-xl"
-                        style={{
-                            shadowColor: '#EF4444',
-                            shadowOffset: { width: 0, height: 4 },
-                            shadowOpacity: 0.2,
-                            shadowRadius: 6,
-                            elevation: 4
-                        }}
-                    >
-                        <Feather name="log-out" size={20} color="#fff" />
-                        <Text className="text-base font-bold text-white">
-                            Se déconnecter
-                        </Text>
-                    </TouchableOpacity>
+
 
                     <View className="h-6" />
                 </View>
