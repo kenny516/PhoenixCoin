@@ -35,8 +35,6 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
     };
 
     const formatDate = (date: any): string => {
-        console.log(date);
-
         if (!date) return "";
 
         try {

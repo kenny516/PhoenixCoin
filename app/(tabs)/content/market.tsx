@@ -168,7 +168,7 @@ export default function MarketScreen() {
 
     return (
         <SafeAreaView className="flex-1 h-full bg-gray-50">
-            <View className="p-6 bg-primary-600">
+            <View className="p-4 bg-primary-600">
                 <Text className="text-2xl font-bold text-white">Marché</Text>
             </View>
             {isLoading ? (
