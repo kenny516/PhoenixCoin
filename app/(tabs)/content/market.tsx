@@ -146,7 +146,11 @@ export default function MarketScreen() {
             onPress={() => {
                 showGraphOfCryptoSelected(item);
             }}>
+
             <View className="flex-row items-center">
+                <View className="items-center justify-center w-10 h-10 mr-3 bg-blue-100 rounded-full">
+                    <Text className="text-lg font-bold text-blue-600">{item.designation[0].toUpperCase()}</Text>
+                </View>
                 <Text className="ml-2 text-gray-500">{item.designation}</Text>
             </View>
 
