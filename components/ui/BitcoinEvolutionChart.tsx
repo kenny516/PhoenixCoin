@@ -50,8 +50,6 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
             if (date instanceof Date) {
                 return date.toLocaleDateString();
             }
-
-            // ❌ Si le format est inconnu, retourne une chaîne vide pour éviter l'erreur
             return "";
         } catch (error) {
             console.error("Erreur de formatage de date :", error);

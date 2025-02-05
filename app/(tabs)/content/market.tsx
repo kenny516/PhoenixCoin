@@ -5,6 +5,7 @@ import { collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/f
 import { auth, db } from '@/firebase/firebaseConfig';
 import BitcoinEvolutionChart from '@/components/ui/BitcoinEvolutionChart';
 import { ChartDataPoint, CoursCrypto, Crypto } from '@/utils/type';
+import Toast from 'react-native-toast-message';
 
 
 // ajoute moi un loading lors du fetch de donne avant d afficher le contenue
@@ -44,6 +45,11 @@ export default function MarketScreen() {
                 );
             }
         } catch (error) {
+            Toast.show({
+                type: "error",
+                text1: "Erreur de connection",
+                text2: "Veuillez verifier votre connection internet 🛜",
+            });
             console.error('Error loading favorites:', error);
         }
     };
