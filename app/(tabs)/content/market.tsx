@@ -183,14 +183,14 @@ export default function MarketScreen() {
                     <Text className="mt-2">Chargement des données...</Text>
                 </View>
             ) : (
-                <View className='w-full h-full gap-4 p-2'>
+                <View className='justify-start w-full h-full p-2 gap-8 flex-[2]'>
                     <View className='w-full h-2/5'>
                         <BitcoinEvolutionChart
                             data={graphContent}
                             title={selectedCrypto?.designation}
                         />
                     </View>
-                    <View className='items-center w-full p-4 rounded-lg border-hairline h-3/6'>
+                    <View className='items-center w-full h-auto p-4 rounded-lg border-hairline'>
                         <Text className='pb-2 text-xl font-bold '>Cryptomonnaies sur le marché</Text>
                         <FlatList
                             data={cryptos}

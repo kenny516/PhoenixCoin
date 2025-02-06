@@ -1,34 +1,26 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
+import {
+    Transaction,
+} from '@/utils/type';
 
-interface Transaction {
-    id: string;
-    type: 'buy' | 'sell';
-    cryptoId: string;
-    cryptoSymbol: string;
-    amount: number;
-    price: number;
-    total: number;
-    timestamp: Date;
-}
-
-interface PortfolioItem {
+// Type utilisé pour chaque élément du portefeuille calculé
+export type PortfolioItem = {
     cryptoId: string;
     symbol: string;
-    totalAmount: number;
-    currentPrice: number;
-    profitLoss: number;
-}
+    quantite: number;
+};
 
+// Fonctions de formatage
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('fr-FR', {
         style: 'currency',
-        currency: 'EUR'
+        currency: 'MGA',
     }).format(value);
 };
 
@@ -36,151 +28,136 @@ const formatCryptoAmount = (amount: number) => {
     return amount < 0.01 ? amount.toFixed(8) : amount.toFixed(4);
 };
 
-// Données de test pour le portfolio
-const staticPortfolio: PortfolioItem[] = [
-    {
-        cryptoId: 'bitcoin',
-        symbol: 'BTC',
-        totalAmount: 0.05,
-        currentPrice: 35000,
-        profitLoss: 250
-    },
-    {
-        cryptoId: 'ethereum',
-        symbol: 'ETH',
-        totalAmount: 1.2,
-        currentPrice: 2000,
-        profitLoss: -100
-    },
-    {
-        cryptoId: 'solana',
-        symbol: 'SOL',
-        totalAmount: 15,
-        currentPrice: 150,
-        profitLoss: 450
-    }
-];
-
-// Données de test pour l'historique des transactions
+// Données de test pour les transactions (le portefeuille sera déduit de ces transactions)
 const staticTransactions: Transaction[] = [
     {
-        id: '1',
-        type: 'buy',
-        cryptoId: 'bitcoin',
-        cryptoSymbol: 'BTC',
-        amount: 0.03,
-        price: 34000,
-        total: 1020,
-        timestamp: new Date('2024-01-15T10:30:00')
+        id: 't1',
+        date_action: '2025-01-01T10:00:00.000Z',
+        cours: 50000, // prix au moment de la transaction
+        quantite: 0.1,
+        profil: {
+            id: 'p1',
+            email: 'test@example.com',
+            fondActuel: 5000,
+        },
+        crypto: {
+            id: 'c1',
+            designation: 'BTC',
+        },
+        transaction: {
+            id: '1',
+            designation: 'achat',
+        },
     },
     {
-        id: '2',
-        type: 'buy',
-        cryptoId: 'ethereum',
-        cryptoSymbol: 'ETH',
-        amount: 0.8,
-        price: 1950,
-        total: 1560,
-        timestamp: new Date('2024-01-14T15:45:00')
+        id: 't2',
+        date_action: '2025-01-02T12:00:00.000Z',
+        cours: 55000,
+        quantite: 0.05,
+        profil: {
+            id: 'p1',
+            email: 'test@example.com',
+            fondActuel: 5000,
+        },
+        crypto: {
+            id: 'c1',
+            designation: 'BTC',
+        },
+        transaction: {
+            id: '2',
+            designation: 'vente',
+        },
     },
     {
-        id: '3',
-        type: 'sell',
-        cryptoId: 'solana',
-        cryptoSymbol: 'SOL',
-        amount: 5,
-        price: 145,
-        total: 725,
-        timestamp: new Date('2024-01-13T09:20:00')
+        id: 't3',
+        date_action: '2025-01-03T15:00:00.000Z',
+        cours: 1800,
+        quantite: 2,
+        profil: {
+            id: 'p1',
+            email: 'test@example.com',
+            fondActuel: 5000,
+        },
+        crypto: {
+            id: 'c2',
+            designation: 'ETH',
+        },
+        transaction: {
+            id: '1',
+            designation: 'achat',
+        },
     },
-    {
-        id: '4',
-        type: 'buy',
-        cryptoId: 'bitcoin',
-        cryptoSymbol: 'BTC',
-        amount: 0.02,
-        price: 35500,
-        total: 710,
-        timestamp: new Date('2024-01-12T14:15:00')
-    },
-    {
-        id: '5',
-        type: 'buy',
-        cryptoId: 'solana',
-        cryptoSymbol: 'SOL',
-        amount: 20,
-        price: 140,
-        total: 2800,
-        timestamp: new Date('2024-01-11T11:30:00')
-    }
 ];
 
 export default function PortfolioScreen() {
     const [balance, setBalance] = useState(5000);
-    const [portfolio, setPortfolio] = useState<PortfolioItem[]>(staticPortfolio);
     const [transactions, setTransactions] = useState<Transaction[]>(staticTransactions);
+    const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
     const [refreshing, setRefreshing] = useState(false);
 
     useEffect(() => {
-        // Décommenter cette ligne pour charger les données
         loadPortfolioData();
     }, []);
 
-    // Simplifier la fonction loadPortfolioData pour le mode test
+    // Chargement des données (ici, utilisation des données statiques)
     const loadPortfolioData = async () => {
         try {
-            const user = auth.currentUser;
-            // Pour le moment, utilisons toujours les données statiques
-            setPortfolio(staticPortfolio);
-            setTransactions(staticTransactions);
-
-            // Si vous voulez tester avec Firebase plus tard, décommentez ce bloc
+            // Pour Firestore, vous pouvez décommenter et adapter ce bloc :
             /*
+            const user = auth.currentUser;
             if (user) {
-                const transactionsRef = collection(db, "transactions");
-                const q = query(transactionsRef, where("userId", "==", user.uid));
-                const querySnapshot = await getDocs(q);
-
-                const transactionsList: Transaction[] = [];
-                querySnapshot.forEach((doc) => {
-                    const data = doc.data();
-                    transactionsList.push({
-                        id: doc.id,
-                        ...data,
-                        timestamp: data.timestamp.toDate()
-                    } as Transaction);
-                });
-
-                setTransactions(transactionsList);
-                calculatePortfolio(transactionsList);
+              const transactionsRef = collection(db, "transactions");
+              const q = query(transactionsRef, where("userId", "==", user.uid));
+              const querySnapshot = await getDocs(q);
+              const transactionsList: Transaction[] = [];
+              querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                transactionsList.push({
+                  id: doc.id,
+                  ...data,
+                  date_action: data.date_action.toDate().toISOString()
+                } as Transaction);
+              });
+              setTransactions(transactionsList);
+              calculatePortfolio(transactionsList);
             }
             */
+            // Pour le test, nous utilisons les données statiques
+            setTransactions(staticTransactions);
+            calculatePortfolio(staticTransactions);
         } catch (error) {
             console.error('Error loading portfolio:', error);
-            setPortfolio(staticPortfolio);
             setTransactions(staticTransactions);
+            calculatePortfolio(staticTransactions);
         }
     };
 
+    // Calculer le portefeuille à partir des transactions en regroupant par crypto
     const calculatePortfolio = (transactions: Transaction[]) => {
         const portfolioMap = new Map<string, PortfolioItem>();
 
-        transactions.forEach(transaction => {
-            const existing = portfolioMap.get(transaction.cryptoId) || {
-                cryptoId: transaction.cryptoId,
-                symbol: transaction.cryptoSymbol,
-                totalAmount: 0,
-                currentPrice: transaction.price, // Utiliser le dernier prix connu
-                profitLoss: 0
-            };
+        transactions.forEach((transaction) => {
+            const cryptoId = transaction.crypto.id;
+            const type = transaction.transaction.designation.toLowerCase(); // 'achat' ou 'vente'
+            const quantite = transaction.quantite;
 
-            if (transaction.type === 'buy') {
-                existing.totalAmount += transaction.amount;
-            } else {
-                existing.totalAmount -= transaction.amount;
+            let item = portfolioMap.get(cryptoId);
+            if (!item) {
+                item = {
+                    cryptoId,
+                    symbol: transaction.crypto.designation,
+                    quantite: 0
+                };
             }
 
-            portfolioMap.set(transaction.cryptoId, existing);
+            if (type === 'achat') {
+                item.quantite += quantite;
+            } else if (type === 'vente') {
+                item.quantite -= quantite;
+            }
+
+
+            portfolioMap.set(cryptoId, item);
         });
 
         setPortfolio(Array.from(portfolioMap.values()));
@@ -192,6 +169,7 @@ export default function PortfolioScreen() {
         setRefreshing(false);
     };
 
+    // Rendu d'un élément du portefeuille
     const renderPortfolioItem = ({ item }: { item: PortfolioItem }) => (
         <TouchableOpacity
             className="flex-row items-center justify-between p-4 mb-2 bg-white rounded-lg shadow-sm"
@@ -203,98 +181,85 @@ export default function PortfolioScreen() {
                 </View>
                 <View>
                     <Text className="text-lg font-bold">{item.symbol}</Text>
-                    <Text className="text-sm text-gray-500">
-                        {formatCryptoAmount(item.totalAmount)} {item.symbol}
-                    </Text>
                 </View>
             </View>
             <View className="items-end">
                 <Text className="text-lg font-medium">
-                    {formatCurrency(item.totalAmount * item.currentPrice)}
+                    {item.quantite}
                 </Text>
-                <View className="flex-row items-center">
-                    <MaterialIcons
-                        name={item.profitLoss >= 0 ? "trending-up" : "trending-down"}
-                        size={16}
-                        color={item.profitLoss >= 0 ? "#16a34a" : "#dc2626"}
-                    />
-                    <Text className={`ml-1 ${item.profitLoss >= 0 ? "text-green-600" : "text-red-600"}`}>
-                        {item.profitLoss >= 0 ? "+" : ""}{formatCurrency(item.profitLoss)}
-                    </Text>
-                </View>
             </View>
         </TouchableOpacity>
     );
 
-    const renderTransaction = ({ item }: { item: Transaction }) => (
-        <View className="flex-row items-center justify-between p-4 mb-2 bg-white rounded-lg shadow-sm">
-            <View className="flex-row items-center flex-1">
-                <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${item.type === 'buy' ? 'bg-green-100' : 'bg-red-100'}`}>
-                    <MaterialIcons
-                        name={item.type === 'buy' ? "call-received" : "call-made"}
-                        size={20}
-                        color={item.type === 'buy' ? "#16a34a" : "#dc2626"}
-                    />
+    // Rendu d'une transaction
+    const renderTransaction = ({ item }: { item: Transaction }) => {
+        const type = item.transaction.designation.toLowerCase() === 'achat' ? 'buy' : 'sell';
+        const cryptoSymbol = item.crypto.designation;
+        const timestamp = new Date(item.date_action);
+        const total = item.cours * item.quantite;
+        const amount = item.quantite;
+        const price = item.cours;
+
+        return (
+            <View className="flex-row items-center justify-between p-4 mb-2 bg-white rounded-lg shadow-sm">
+                <View className="flex-row items-center flex-1">
+                    <View
+                        className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${type === 'buy' ? 'bg-green-100' : 'bg-red-100'
+                            }`}
+                    >
+                        <MaterialIcons
+                            name={type === 'buy' ? 'call-received' : 'call-made'}
+                            size={20}
+                            color={type === 'buy' ? '#16a34a' : '#dc2626'}
+                        />
+                    </View>
+                    <View>
+                        <Text className="text-lg font-medium">{cryptoSymbol}</Text>
+                        <Text className="text-sm text-gray-500">
+                            {timestamp.toLocaleString('fr-FR', {
+                                day: '2-digit',
+                                month: 'short',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                            })}
+                        </Text>
+                    </View>
                 </View>
-                <View>
-                    <Text className="text-lg font-medium">{item.cryptoSymbol}</Text>
+                <View className="items-end">
+                    <Text className={`text-lg ${type === 'buy' ? 'text-green-600' : 'text-red-600'}`}>
+                        {type === 'buy' ? '+' : '-'}
+                        {formatCurrency(total)}
+                    </Text>
                     <Text className="text-sm text-gray-500">
-                        {new Date(item.timestamp).toLocaleString('fr-FR', {
-                            day: '2-digit',
-                            month: 'short',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                        })}
+                        {formatCryptoAmount(amount)} @ {formatCurrency(price)}
                     </Text>
                 </View>
             </View>
-            <View className="items-end">
-                <Text className={`text-lg ${item.type === 'buy' ? 'text-green-600' : 'text-red-600'}`}>
-                    {item.type === 'buy' ? '+' : '-'}{formatCurrency(item.total)}
-                </Text>
-                <Text className="text-sm text-gray-500">
-                    {formatCryptoAmount(item.amount)} @ {formatCurrency(item.price)}
-                </Text>
-            </View>
-        </View>
-    );
+        );
+    };
 
     return (
         <SafeAreaView className="flex-1 bg-gray-100">
-            <LinearGradient
-                colors={['#3B82F6', '#2563EB']}
-                className="p-6"
-            >
+            <LinearGradient colors={['#3B82F6', '#2563EB']} className="p-6">
                 <Text className="mb-4 text-2xl font-bold text-white">Mon Portefeuille</Text>
                 <View className="p-5 bg-white/20 rounded-xl">
                     <Text className="mb-1 text-sm text-white/90">Solde total</Text>
-                    <Text className="text-4xl font-bold text-white">
-                        {formatCurrency(balance)}
-                    </Text>
+                    <Text className="text-4xl font-bold text-white">{formatCurrency(balance)}</Text>
                 </View>
             </LinearGradient>
 
-            <ScrollView
-                className="flex-1"
-                refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                }
-            >
+            <ScrollView className="flex-1" refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
                 <View className="p-4">
-                    <Text className="mb-3 text-xl font-bold text-gray-800">Mes actifs</Text>
-                    {portfolio?.map((item, index) => (
-                        <View key={index}>
-                            {renderPortfolioItem({ item })}
-                        </View>
+                    <Text className="mb-4 text-xl font-bold text-gray-800">Mes actifs</Text>
+                    {portfolio.map((item, index) => (
+                        <View key={index}>{renderPortfolioItem({ item })}</View>
                     ))}
                 </View>
 
                 <View className="p-4">
-                    <Text className="mb-3 text-xl font-bold text-gray-800">Transactions récentes</Text>
-                    {transactions?.map((item, index) => (
-                        <View key={index}>
-                            {renderTransaction({ item })}
-                        </View>
+                    <Text className="mb-4 text-xl font-bold text-gray-800">Transactions récentes</Text>
+                    {transactions.map((item, index) => (
+                        <View key={index}>{renderTransaction({ item })}</View>
                     ))}
                 </View>
             </ScrollView>
