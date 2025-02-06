@@ -17,7 +17,8 @@
                 "foregroundImage": "./assets/images/logo.png",
                 "backgroundColor": "#ffffff"
             },
-            "package": "com.andriantsirafychankenny.phoenixcoin"
+            "googleServicesFile": "./firebase/google-services.json",
+            "package": "group.phoenixCoin"
         },
         "web": {
             "bundler": "metro",

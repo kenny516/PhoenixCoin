@@ -3,10 +3,12 @@ import { Link, router } from 'expo-router';
 import { Feather, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth } from '@/firebase/firebaseConfig';
 import { useEffect } from 'react';
+import { getFCMToken } from '@/utils/notifications';
 
 const { width } = Dimensions.get('window');
 
 export default function LandingScreen() {
+
 
     const verifUser = async () => {
         const user = auth.currentUser;
@@ -15,6 +17,7 @@ export default function LandingScreen() {
         }
     }
     useEffect(() => {
+
         verifUser();
     }, [])
 
