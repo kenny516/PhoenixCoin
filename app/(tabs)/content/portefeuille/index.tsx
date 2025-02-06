@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, RefreshControl, ScrollView } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
 import {
     Profil,
@@ -102,10 +102,36 @@ export default function PortfolioScreen() {
     const [transactions, setTransactions] = useState<Transaction[]>(staticTransactions);
     const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
     const [refreshing, setRefreshing] = useState(false);
+    const [isloading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        loadPortfolioData();
+        calculatePortfolio(staticTransactions);
+        setTransactions(staticTransactions);
+        //loadPortfolioData();
     }, []);
+
+    const loadProfile = async () => {
+        try {
+            const user = auth.currentUser;
+            if (user) {
+                const profilRef = collection(db, "profil");
+                const requette = query(profilRef, where("id", "==", user.uid));
+                const resultat = await getDocs(requette);
+
+                resultat.forEach((doc) => {
+                    const data = doc.data();
+                    setProfil({
+                        id: data.id,
+                        email: data.email,
+                        fondActuel: data.fondActuel,
+                    })
+                })
+            }
+        } catch (error) {
+            Toast({})
+            console.error('Error loading profil:', error);
+        }
+    }
 
     const loadPortfolioData = async () => {
         try {

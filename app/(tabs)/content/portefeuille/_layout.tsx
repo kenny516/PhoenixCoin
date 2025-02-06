@@ -13,6 +13,12 @@ export default function layout() {
                     title: 'portefeuille'
                 }}
             />
+            <Stack.Screen
+                name="transaction"
+                options={{
+                    title: 'transaction'
+                }}
+            />
         </Stack>
     )
 }
