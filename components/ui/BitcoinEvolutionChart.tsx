@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, Dimensions } from 'react-native';
 import { LineChart } from 'react-native-gifted-charts';
 import { BitcoinEvolutionChartProps, ChartDataPoint } from '@/utils/type';
+import { ColorProperties } from 'react-native-reanimated/lib/typescript/Colors';
 
 // Données du graphique (à remplacer par des données dynamiques)
 const mockChartData: ChartDataPoint[] = [
@@ -77,7 +78,6 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
             {/* En-tête */}
             <View
                 style={{
-                    height: HEADER_HEIGHT,
                     flexDirection: 'row',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -96,53 +96,61 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
 
             {/* Graphique */}
             <LineChart
-                data={data.map(item => ({
+                data={mockChartData.map(item => ({
                     value: item.value,
                     label: formatDate(item.date),
                     dataPointText: formatCurrency(item.value)
                 }))}
+
+                // Configuration du tracé
                 areaChart1
                 width={chartWidth}
-                height={chartHeight}
                 curved
                 isAnimated
                 animationDuration={1500}
-                thickness={2}
+                thickness={3} // Légèrement plus épais pour un trait plus visible
                 hideDataPoints={false}
 
-                maxValue={50000}
-                // Couleurs et remplissage
+
+                // Valeur maximale
+                maxValue={Math.max(...mockChartData.map(item => item.value))}
+
+                // Couleurs et remplissage du graphique
                 color="#3b82f6"
-                startFillColor="rgba(59, 130, 246, 0.2)"
-                endFillColor="rgba(59, 130, 246, 0.01)"
-                startOpacity={0.9}
-                endOpacity={0.2}
-                // Axes et texte
+                startFillColor="rgba(59, 130, 246, 0.3)"
+                endFillColor="rgba(59, 130, 246, 0.0)"
+                startOpacity={0.8}
+                endOpacity={0.1}
+
+                // Axes et styles de texte
                 yAxisColor="#e5e7eb"
                 xAxisColor="#e5e7eb"
-                yAxisTextStyle={{ color: '#6b7280', fontSize: 12 }}
+                yAxisTextStyle={{ color: '#6b7280', fontSize: 12, fontWeight: '500' }}
                 xAxisLabelTextStyle={{ color: '#6b7280', fontSize: 10 }}
-                // Points de données
-                dataPointsColor="#3b82f6"
-                dataPointsRadius={5}
-                // Lignes de grille
+
+                // Configuration des points de données
+                dataPointsColor="#2563eb"
+                dataPointsRadius={6}
+
+                // Lignes verticales (grille)
                 showVerticalLines
-                verticalLinesColor="rgba(229, 231, 235, 0.5)"
+                verticalLinesColor="#d1d5db"
                 verticalLinesThickness={1}
-                showHorizontalLines
-                horizontalLinesColor="rgba(229, 231, 235, 0.5)"
-                // Configuration du graphique
-                spacing={50}
-                yAxisOffset={40}
-                noOfSections={6}
-                // Règles et indices
+
+                // Espacement et sections
+                spacing={60}
+                yAxisOffset={Math.min(...mockChartData.map(item => item.value))}
+                noOfSections={5}
+
+                // Règles (grid lines) et indices
                 hideRules={false}
-                rulesType="solid"
-                rulesColor="rgba(229, 231, 235, 0.8)"
+                rulesType="dotted"  // Optez pour des lignes pointillées pour un look plus léger
+                rulesColor="#d1d5db"
                 showYAxisIndices
-                yAxisIndicesColor="#e5e7eb"
+                yAxisIndicesColor="#d1d5db"
                 yAxisIndicesWidth={1}
             />
+
         </View>
     );
 };

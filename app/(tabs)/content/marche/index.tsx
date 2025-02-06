@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ActivityIndicator, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
@@ -184,11 +184,14 @@ export default function MarketScreen() {
                 </View>
             ) : (
                 <View className='justify-start w-full h-full p-2 gap-8 flex-[2]'>
-                    <View className='w-full h-2/5'>
-                        <BitcoinEvolutionChart
-                            data={graphContent}
-                            title={selectedCrypto?.designation}
-                        />
+                    <View className='w-full p-4 bg-slate-200 rounded-xl h-2/5'>
+                        <ScrollView>
+                            <BitcoinEvolutionChart
+                                data={graphContent}
+                                title={selectedCrypto?.designation}
+                            />
+                        </ScrollView>
+
                     </View>
                     <View className='items-center w-full h-auto p-4 rounded-lg border-hairline'>
                         <Text className='pb-2 text-xl font-bold '>Cryptomonnaies sur le marché</Text>

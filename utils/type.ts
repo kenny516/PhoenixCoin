@@ -21,7 +21,6 @@ export type CoursCrypto = {
     name: string;
     coursActuel: number;
     dateCours: string;
-    priceChangePercentage24h: number;
     isFavorite?: boolean;
 };
 
@@ -44,7 +43,7 @@ export type BitcoinEvolutionChartProps = {
 
 export type Transaction = {
     id: string;
-    date_action: string;
+    dateAction: string;
     cours: number;
     quantite: number;
     profil: Profil;
@@ -55,4 +54,13 @@ export type Transaction = {
 export type Portefeuille = {
     profil: Profil;
     transactions: Transaction[];
+}
+
+export type Historique_fond = {
+    id: string,
+    date_transaction: string;
+    numCarteBancaire: string;
+    montant: number;
+    idProfil: string;
+    idTypeAction: string;
 }

@@ -17,8 +17,6 @@ export default function ProfileScreen() {
         pseudo: "",
         email: "",
         dateNaissance: "",
-        telephone: "",
-        adresse: ""
     });
 
     useEffect(() => {
@@ -38,8 +36,6 @@ export default function ProfileScreen() {
                         pseudo: data.username || '',
                         email: user.email || '',
                         dateNaissance: data.dateNaissance || '',
-                        telephone: data.telephone || '',
-                        adresse: data.adresse || ''
                     });
                     setImage(data.avatarUrl);
                 }
@@ -238,8 +234,6 @@ export default function ProfileScreen() {
                             <InfoRow label="Pseudo" value={userInfo.pseudo} icon="at-sign" />
                             <InfoRow label="Email" value={userInfo.email} icon="mail" />
                             <InfoRow label="Date de naissance" value={userInfo.dateNaissance} icon="calendar" />
-                            <InfoRow label="Téléphone" value={userInfo.telephone} icon="phone" />
-                            <InfoRow label="Adresse" value={userInfo.adresse} icon="map-pin" />
                         </View>
                         {/* Bouton de déconnexion */}
                         <TouchableOpacity

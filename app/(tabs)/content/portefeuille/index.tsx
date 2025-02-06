@@ -34,7 +34,7 @@ const formatCryptoAmount = (amount: number) => {
 const staticTransactions: Transaction[] = [
     {
         id: 't1',
-        date_action: '2025-01-01T10:00:00.000Z',
+        dateAction: '2025-01-01T10:00:00.000Z',
         cours: 50000, // prix au moment de la transaction
         quantite: 0.1,
         profil: {
@@ -53,7 +53,7 @@ const staticTransactions: Transaction[] = [
     },
     {
         id: 't2',
-        date_action: '2025-01-02T12:00:00.000Z',
+        dateAction: '2025-01-02T12:00:00.000Z',
         cours: 55000,
         quantite: 0.05,
         profil: {
@@ -72,7 +72,7 @@ const staticTransactions: Transaction[] = [
     },
     {
         id: 't3',
-        date_action: '2025-01-03T15:00:00.000Z',
+        dateAction: '2025-01-03T15:00:00.000Z',
         cours: 1800,
         quantite: 2,
         profil: {
@@ -147,7 +147,7 @@ export default function PortfolioScreen() {
                     const data = doc.data();
                     transactionsList.push({
                         id: doc.id,
-                        date_action: data.date_action.toDate().toISOString(),
+                        dateAction: data.date_action.toDate().toISOString(),
                         cours: data.cours,
                         quantite: data.quantite,
                         profil: data.profil,
@@ -295,7 +295,7 @@ export default function PortfolioScreen() {
                                                     {type ? 'Achat' : 'Vente'} {item.crypto.designation}
                                                 </Text>
                                                 <Text className="text-sm text-gray-500">
-                                                    {new Date(item.date_action).toLocaleDateString('fr-FR', {
+                                                    {new Date(item.dateAction).toLocaleDateString('fr-FR', {
                                                         day: '2-digit',
                                                         month: 'short',
                                                         hour: '2-digit', minute: '2-digit'
