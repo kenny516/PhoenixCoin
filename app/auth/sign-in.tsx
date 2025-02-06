@@ -16,7 +16,7 @@ export default function SignInScreen() {
         setLoading(true);
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            router.replace('/(tabs)/content/market');
+            router.replace('/(tabs)/content/marche');
         } catch (error: any) {
             alert("Erreur lors de la connexion:\n veuillez verifier vos identifiants");
         } finally {

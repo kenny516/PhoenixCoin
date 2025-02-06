@@ -107,7 +107,6 @@ export default function PortfolioScreen() {
         loadPortfolioData();
     }, []);
 
-    // Chargement des données (ici, utilisation des données statiques)
     const loadPortfolioData = async () => {
         try {
             // Pour Firestore, vous pouvez décommenter et adapter ce bloc :
