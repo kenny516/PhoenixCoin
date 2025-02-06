@@ -1,4 +1,3 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -12,6 +11,7 @@ import { StatusBarManager } from '@/components/StatusBarManager';
 import 'react-native-url-polyfill/auto';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import { getMessaging, getToken } from "firebase/messaging";
 
 
 Notifications.setNotificationHandler({
@@ -21,6 +21,20 @@ Notifications.setNotificationHandler({
         shouldSetBadge: false,
     }),
 });
+
+
+const messaging = getMessaging();
+
+const getFCMToken = async () => {
+    try {
+        const fcmToken = await getToken(messaging, { vapidKey: "YOUR_FCM_VAPID_KEY" });
+        alert("fccc" + fcmToken);
+        console.log("FCM Token:", fcmToken);
+        return fcmToken;
+    } catch (error) {
+        console.error("Erreur lors de la récupération du token FCM :", error);
+    }
+};
 
 async function registerForPushNotificationsAsync() {
     let token;
@@ -44,7 +58,7 @@ async function registerForPushNotificationsAsync() {
             alert('Failed to get push token for push notification!');
             return;
         }
-        token = (await Notifications.getExpoPushTokenAsync()).data;
+        token = (await Notifications.getDevicePushTokenAsync()).data;
         console.log('push token', token);
         alert(token);
     } else {
