@@ -9,6 +9,7 @@ import { signOut } from 'firebase/auth';
 import { router } from 'expo-router';
 import { ImageKitService } from '@/service/imageKitService';
 import Toast from "react-native-toast-message";
+import { getFCMToken } from '@/utils/notifications';
 
 export default function ProfileScreen() {
     const [image, setImage] = useState<string | null>(null);
@@ -27,7 +28,7 @@ export default function ProfileScreen() {
         try {
             const user = auth.currentUser;
             if (user) {
-                const docRef = doc(db, "profiles", user.uid);
+                const docRef = doc(db, "profil", user.uid);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
@@ -69,6 +70,11 @@ export default function ProfileScreen() {
                 text2: "photo de profiele modifier ✅",
             });
         } catch (error) {
+            Toast.show({
+                type: "error",
+                text1: "Erreur de connection",
+                text2: "Veuillez verifier votre connection internet 🛜",
+            });
             Alert.alert('Erreur', 'Impossible de mettre à jour le profil');
         }
     };
@@ -253,9 +259,6 @@ export default function ProfileScreen() {
                             </Text>
                         </TouchableOpacity>
                     </View>
-
-
-
                     <View className="h-6" />
                 </View>
             </ScrollView>

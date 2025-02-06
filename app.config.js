@@ -24,8 +24,9 @@ export default {
                 foregroundImage: "./assets/images/logo.png",
                 backgroundColor: "#FFFFFF"
             },
+            googleServicesFile: "./firebase/google-services.json",
             buildType: "apk",
-            package: "com.andriantsirafychankenny.phoenixcoin"
+            package: "group.phoenixCoin"
         },
         web: {
             bundler: "metro",
