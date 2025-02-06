@@ -20,7 +20,7 @@ export type CoursCrypto = {
     designation: string;
     name: string;
     coursActuel: number;
-    dateCours: Date;
+    dateCours: string;
     priceChangePercentage24h: number;
     isFavorite?: boolean;
 };
