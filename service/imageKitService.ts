@@ -19,12 +19,12 @@ export class ImageKitService {
             // Obtenir l'authentification localement
             const authParams = await imagekitAuth.getAuthenticationParameters();
 
-            const base64 = await FileSystem.readAsStringAsync(imageUri, {
-                encoding: FileSystem.EncodingType.Base64,
-            });
+
+            let file = await fetch(imageUri);
+            let blob = await file.blob();
 
             const uploadOptions = {
-                file: base64,
+                file: blob,
                 fileName,
                 signature: authParams.signature,
                 token: authParams.token,

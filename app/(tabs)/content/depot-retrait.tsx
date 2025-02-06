@@ -1,18 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-
-type TransactionType = 'depot' | 'retrait';
+import { Picker } from '@react-native-picker/picker';
+import { auth, db } from '@/firebase/firebaseConfig';
+import { collection, getDocs, query } from 'firebase/firestore';
+import Toast from 'react-native-toast-message';
+import { TypeAction } from '@/utils/type';
 
 export default function DepotRetraitScreen() {
-    const [amount, setAmount] = useState('');
-    const [cardNumber, setCardNumber] = useState('');
-    const [type, setType] = useState<TransactionType>('depot');
+    const [amount, setAmount] = useState<string>('');
+    const [cardNumber, setCardNumber] = useState<string>('');
+    const [typeActions, setTypeActions] = useState<TypeAction[]>([]);
+    const [type, setType] = useState<string>('');
+
+    useEffect(() => {
+        loadTypeAction();
+    }, []);
+
+    const loadTypeAction = async () => {
+        try {
+            const user = auth.currentUser;
+            if (user) {
+                const docRef = collection(db, 'type_action');
+                const q = query(docRef);
+                const querySnapshot = await getDocs(q);
+
+                const typeActionListe: TypeAction[] = querySnapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    designation: doc.data().designation,
+                }));
+
+                setTypeActions(typeActionListe);
+            }
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur de connexion',
+                text2: 'Veuillez vérifier votre connexion internet 🛜',
+            });
+            console.error('Error loading type actions:', error);
+        }
+    };
 
     const handleSubmit = () => {
-        if (!amount || !cardNumber) {
+        if (!amount || !cardNumber || !type) {
             Alert.alert('Erreur', 'Veuillez remplir tous les champs');
             return;
         }
@@ -30,68 +62,50 @@ export default function DepotRetraitScreen() {
                 {
                     text: 'Confirmer',
                     onPress: () => {
-                        // process depot ou retrait
-                        console.log("type = ", type);
-                        console.log("amount = ", amount);
-                        console.log("cardNumber = ", cardNumber);
-                        Alert.alert('Succès', `${type === 'depot' ? 'Dépôt' : 'Retrait'} effectué avec succès`);
+                        console.log('Type =', type);
+                        console.log('Amount =', amount);
+                        console.log('CardNumber =', cardNumber);
+                        Alert.alert(
+                            'Succès',
+                            `${type === 'depot' ? 'Dépôt' : 'Retrait'} effectué avec succès`
+                        );
                         setAmount('');
                         setCardNumber('');
-                    }
-                }
+                        setType('');
+                    },
+                },
             ]
         );
     };
 
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
-            <LinearGradient
-                colors={['#2563EB', '#3B82F6']}
-                className="p-4"
-            >
+        <SafeAreaView className="flex-1 h-full bg-gray-50">
+            <LinearGradient colors={['#2563EB', '#3B82F6']} className="p-4">
                 <Text className="text-2xl font-bold text-white">
-                    {type === 'depot' ? 'Dépôt' : 'Retrait'}
+                    Transaction
                 </Text>
             </LinearGradient>
 
-            <ScrollView className="flex-1 p-4">
-                <View className="flex-row justify-around mb-6">
-                    <TouchableOpacity
-                        onPress={() => setType('depot')}
-                        className={`flex-1 flex-row items-center justify-center p-4 rounded-xl mx-2 shadow-sm
-                            ${type === 'depot'
-                                ? 'bg-accent-500'
-                                : 'bg-gray-50 border border-accent-100'}`}
-                    >
-                        <MaterialCommunityIcons
-                            name="bank-transfer-in"
-                            size={24}
-                            color={type === 'depot' ? 'white' : '#10B981'}
-                        />
-                        <Text className={`ml-3 font-bold ${type === 'depot' ? 'text-white' : 'text-accent-500'}`}>
-                            Dépôt
-                        </Text>
-                    </TouchableOpacity>
+            <View className="flex-1 w-full h-full p-4">
+                <View className="flex-col p-4 gap-7 h-3/5 rounded-xl">
+                    {/* Sélection du type d'action */}
+                    <View>
+                        <Text className="mb-1 text-sm font-medium text-gray-700">Type d'Action</Text>
+                        <View className="overflow-hidden border border-gray-200 rounded-lg">
+                            <Picker
+                                selectedValue={type}
+                                onValueChange={(itemValue) => setType(itemValue)}
+                                style={{ backgroundColor: 'white' }}
+                            >
+                                <Picker.Item label="Sélectionner un type" value="" />
+                                {typeActions.map((action) => (
+                                    <Picker.Item key={action.id} label={action.designation} value={action.id} />
+                                ))}
+                            </Picker>
+                        </View>
+                    </View>
 
-                    <TouchableOpacity
-                        onPress={() => setType('retrait')}
-                        className={`flex-1 flex-row items-center justify-center p-4 rounded-xl mx-2 shadow-sm
-                            ${type === 'retrait'
-                                ? 'bg-primary-500'
-                                : 'bg-gray-50 border border-primary-100'}`}
-                    >
-                        <MaterialCommunityIcons
-                            name="bank-transfer-out"
-                            size={24}
-                            color={type === 'retrait' ? 'white' : '#3B82F6'}
-                        />
-                        <Text className={`ml-3 font-bold ${type === 'retrait' ? 'text-white' : 'text-primary-500'}`}>
-                            Retrait
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View className="p-4 space-y-6 bg-white shadow-md rounded-xl">
+                    {/* Saisie du montant */}
                     <View>
                         <Text className="mb-1 text-sm font-medium text-gray-700">Montant (€)</Text>
                         <TextInput
@@ -103,6 +117,7 @@ export default function DepotRetraitScreen() {
                         />
                     </View>
 
+                    {/* Saisie du numéro de carte */}
                     <View>
                         <Text className="mb-1 text-sm font-medium text-gray-700">Numéro de carte</Text>
                         <TextInput
@@ -115,6 +130,7 @@ export default function DepotRetraitScreen() {
                         />
                     </View>
 
+                    {/* Bouton de confirmation */}
                     <TouchableOpacity
                         onPress={handleSubmit}
                         className={`p-4 rounded-xl ${type === 'depot' ? 'bg-accent-500' : 'bg-primary-500'}`}
@@ -124,7 +140,7 @@ export default function DepotRetraitScreen() {
                         </Text>
                     </TouchableOpacity>
                 </View>
-            </ScrollView>
+            </View>
         </SafeAreaView>
     );
 }

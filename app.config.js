@@ -25,10 +25,6 @@ export default {
                 backgroundColor: "#FFFFFF"
             },
             buildType: "apk",
-            adaptiveIcon: {
-                foregroundImage: "./assets/images/adaptive-icon.png",
-                backgroundColor: "#ffffff"
-            },
             package: "com.andriantsirafychankenny.phoenixcoin"
         },
         web: {
@@ -41,7 +37,7 @@ export default {
             [
                 "expo-splash-screen",
                 {
-                    "image": "./assets/images/splash-icon.png",
+                    "image": "./assets/images/logo.png",
                     "imageWidth": 200,
                     "resizeMode": "contain",
                     "backgroundColor": "#ffffff"

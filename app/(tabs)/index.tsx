@@ -1,10 +1,22 @@
 import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Platform, Dimensions, StatusBar as RNStatusBar } from 'react-native';
 import { Link, router } from 'expo-router';
 import { Feather, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
+import { auth } from '@/firebase/firebaseConfig';
+import { useEffect } from 'react';
 
 const { width } = Dimensions.get('window');
 
 export default function LandingScreen() {
+
+    const verifUser = async () => {
+        const user = auth.currentUser;
+        if (user) {
+            router.push('/(tabs)/content/marche');
+        }
+    }
+    useEffect(() => {
+        verifUser();
+    }, [])
 
 
     const features = [
@@ -38,7 +50,7 @@ export default function LandingScreen() {
                             </View>
                             <TouchableOpacity
                                 className="bg-primary-500 px-5 py-2.5 rounded-full border border-white elevation-3"
-                                onPress={() => router.push('/(tabs)/content/market')}>
+                                onPress={() => router.push('/(tabs)/content/marche')}>
                                 <Text className="font-bold text-white">Connexion</Text>
                             </TouchableOpacity>
                         </View>

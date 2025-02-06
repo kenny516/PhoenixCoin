@@ -1,7 +1,6 @@
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { View, Text, Platform, Animated } from 'react-native';
-import { useMemo } from 'react';
 
 const TabBarIcon = ({ name, color, focused }: { name: any; color: string; focused: boolean }) => {
     return (
@@ -57,7 +56,7 @@ export default function TabLayout() {
                 },
             }}>
             <Tabs.Screen
-                name="market"
+                name="marche"
                 options={{
                     title: 'marché',
                     tabBarIcon: ({ focused }) => (
@@ -71,7 +70,7 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
-                name="portfolio"
+                name="portefeuille"
                 options={{
                     title: 'Portefeuille',
                     tabBarIcon: ({ focused }) => (
@@ -101,7 +100,7 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="profile"
                 options={{
-                    title: 'profile',
+                    title: 'profil',
                     tabBarIcon: ({ focused }) => (
                         <TabBarIcon
                             name="account-outline"
