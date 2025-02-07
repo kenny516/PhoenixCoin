@@ -104,7 +104,6 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
                 // Configuration du tracé
                 areaChart1
                 width={chartWidth}
-                curved
                 isAnimated
                 animationDuration={1500}
                 thickness={3} // Légèrement plus épais pour un trait plus visible
@@ -112,7 +111,7 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
 
 
                 // Valeur maximale
-                maxValue={Math.max(...data.map(item => item.value))}
+
 
                 // Couleurs et remplissage du graphique
                 color="#3b82f6"

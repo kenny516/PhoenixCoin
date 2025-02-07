@@ -195,6 +195,18 @@ export default function MarketScreen() {
             });
         }
     };
+    // call tous les 10 seconde du showGraphOfCryptoSelected 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (selectedCrypto) {
+                showGraphOfCryptoSelected(selectedCrypto);
+                console.log("call");
+
+            }
+        }, 10000);
+        return () => clearInterval(interval);
+    }, [selectedCrypto]);
+
 
 
     const renderCryptoItem = ({ item, index }: { item: Crypto, index: number }) => (
