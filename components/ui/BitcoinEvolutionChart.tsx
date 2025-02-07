@@ -15,9 +15,9 @@ const mockChartData: ChartDataPoint[] = [
     { value: 3900, date: '7 Jan' },
 ];
 
-const HEADER_HEIGHT = Dimensions.get('window').height * 0.06; // Hauteur adaptative
-const INFO_HEIGHT = Dimensions.get('window').height * 0.06;
-const CONTAINER_MARGIN = Dimensions.get('window').width * 0.04;
+const HEADER_HEIGHT = 50; // Hauteur réservée pour l'en-tête (modifiable)
+const INFO_HEIGHT = 50;   // Hauteur réservée pour la section d'informations complémentaires (modifiable)
+const CONTAINER_MARGIN = 32; // Marge totale (ex : 16 de chaque côté)
 
 const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
     data = mockChartData,
@@ -29,14 +29,12 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
     const [containerHeight, setContainerHeight] = useState<number>(0);
 
     // Détermine la largeur du graphique en soustrayant une marge du conteneur
-    const chartWidth = containerWidth ? containerWidth - CONTAINER_MARGIN : Dimensions.get("window").width * 0.92;
+    const chartWidth = containerWidth ? containerWidth - CONTAINER_MARGIN : Dimensions.get("window").width - CONTAINER_MARGIN;
 
     // Le graphique occupe la hauteur restante après avoir retiré l'en-tête et la zone d'infos.
     // On impose également une hauteur minimale pour le graphique.
-    const calculatedChartHeight = containerHeight
-        ? containerHeight - HEADER_HEIGHT - INFO_HEIGHT
-        : Dimensions.get("window").height * 0.3;
-    const chartHeight = Math.max(calculatedChartHeight, Dimensions.get("window").height * 0.2);
+    const calculatedChartHeight = containerHeight ? containerHeight - HEADER_HEIGHT - INFO_HEIGHT - 20 : Math.min(200, Dimensions.get("window").height * 0.2);
+    const chartHeight = calculatedChartHeight > 100 ? calculatedChartHeight : 100; // hauteur minimale de 100
 
     const firstValue = data[0].value;
     const lastValue = data[data.length - 1].value;
@@ -71,36 +69,27 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
     return (
         // Le conteneur principal récupère sa taille via onLayout
         <View
-            style={{
-                flex: 1,
-                padding: Dimensions.get('window').width * 0.02
-            }}
+            style={{ flex: 1 }}
+            className='h-full'
             onLayout={({ nativeEvent }) => {
                 setContainerWidth(nativeEvent.layout.width);
                 setContainerHeight(nativeEvent.layout.height);
             }}
         >
             {/* En-tête */}
-            <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: Dimensions.get('window').height * 0.01,
-                paddingHorizontal: Dimensions.get('window').width * 0.02
-            }}>
-                <Text style={{
-                    fontSize: Dimensions.get('window').width * 0.045,
-                    color: '#1F2937',
-                    fontWeight: 'bold'
-                }}>
+            <View
+                style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: 8,
+                }}
+            >
+                <Text style={{ fontSize: 20, color: '#1F2937', fontWeight: 'bold' }}>
                     Crypto : <Text style={{ fontWeight: 'normal' }}>{title}</Text>
                 </Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                    <Text style={{
-                        fontSize: Dimensions.get('window').width * 0.035,
-                        fontWeight: '500',
-                        color: isPositive ? '#10B981' : '#EF4444'
-                    }}>
+                    <Text style={{ fontSize: 14, fontWeight: '500', color: isPositive ? '#10B981' : '#EF4444' }}>
                         {isPositive ? '+' : ''}{variation}%
                     </Text>
                 </View>
@@ -113,14 +102,14 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
                 }))}
 
                 // Configuration du tracé
-                areaChart
+                areaChart1
                 width={chartWidth}
-                height={chartHeight}
                 curved
                 isAnimated
                 animationDuration={1500}
                 thickness={3} // Légèrement plus épais pour un trait plus visible
                 hideDataPoints={false}
+
 
                 // Valeur maximale
                 maxValue={Math.max(...data.map(item => item.value))}
@@ -135,25 +124,20 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
                 // Axes et styles de texte
                 yAxisColor="#e5e7eb"
                 xAxisColor="#e5e7eb"
-                yAxisTextStyle={{
-                    color: '#6b7280',
-                    fontSize: Dimensions.get('window').width * 0.03,
-                    fontWeight: '500'
-                }}
-                xAxisLabelTextStyle={{
-                    color: '#6b7280',
-                    fontSize: Dimensions.get('window').width * 0.025
-                }}
+                yAxisTextStyle={{ color: '#6b7280', fontSize: 12, fontWeight: '500' }}
+                xAxisLabelTextStyle={{ color: '#6b7280', fontSize: 10 }}
 
                 // Configuration des points de données
                 dataPointsColor="#2563eb"
-                dataPointsRadius={Dimensions.get('window').width * 0.015}
+                dataPointsRadius={6}
+
+                // Lignes verticales (grille)
                 showVerticalLines
                 verticalLinesColor="#d1d5db"
                 verticalLinesThickness={1}
 
                 // Espacement et sections
-                spacing={Dimensions.get('window').width * 0.15}
+                spacing={60}
                 yAxisOffset={Math.min(...data.map(item => item.value))}
                 noOfSections={5}
 

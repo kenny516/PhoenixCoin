@@ -160,7 +160,7 @@ export default function PortfolioScreen() {
     });
 
     return (
-        <SafeAreaView className="flex-1 bg-primary-50">
+        <SafeAreaView className="flex-1">
             <Animated.View
                 style={{
                     height: headerHeight,
@@ -174,7 +174,7 @@ export default function PortfolioScreen() {
                     end={{ x: 1, y: 1 }}
                     className="absolute w-full h-full"
                 />
-                <BlurView intensity={20} className="absolute w-full h-full" />
+
 
                 <View className="px-6 pt-4">
                     <MotiView
@@ -213,24 +213,6 @@ export default function PortfolioScreen() {
                 </View>
             </Animated.View>
 
-            {/* Barre de recherche flottante */}
-            <MotiView
-                from={{ opacity: 0, translateY: 10 }}
-                animate={{ opacity: 1, translateY: 0 }}
-                transition={{ delay: 600 }}
-                className="z-10 px-4 -mt-6"
-            >
-                <View className="flex-row items-center p-2 bg-white shadow-lg rounded-2xl">
-                    <Ionicons name="search" size={20} color="#6B7280" className="mx-2" />
-                    <TextInput
-                        placeholder="Rechercher une crypto..."
-                        value={searchQuery}
-                        onChangeText={setSearchQuery}
-                        className="flex-1 p-2 text-base text-gray-700"
-                        placeholderTextColor="#9CA3AF"
-                    />
-                </View>
-            </MotiView>
 
             <Animated.ScrollView
                 className="flex-1"

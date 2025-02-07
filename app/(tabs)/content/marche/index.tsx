@@ -196,13 +196,6 @@ export default function MarketScreen() {
         }
     };
 
-    // prendre la liste cours_crypto 
-    const onRefresh = async () => {
-        setRefreshing(true);
-        await loadCrypto();
-        //setCryptos(staticCryptos);
-        setRefreshing(false);
-    };
 
     const renderCryptoItem = ({ item, index }: { item: Crypto, index: number }) => (
         <Animated.View
@@ -314,9 +307,6 @@ export default function MarketScreen() {
                             data={cryptos}
                             renderItem={renderCryptoItem}
                             keyExtractor={item => item.id}
-                            refreshControl={
-                                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-                            }
                             contentContainerStyle={{
                                 paddingBottom: Dimensions.get('window').height * 0.02
                             }}

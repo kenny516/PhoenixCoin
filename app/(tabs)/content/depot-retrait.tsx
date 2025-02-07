@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '@/firebase/firebaseConfig';
-import { collection, getDocs, query } from 'firebase/firestore';
+import { addDoc, collection, getDocs, query } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
 import { TypeAction } from '@/utils/type';
 
@@ -14,6 +14,7 @@ export default function DepotRetraitScreen() {
     const [cardNumber, setCardNumber] = useState<string>('');
     const [typeActions, setTypeActions] = useState<TypeAction[]>([]);
     const [type, setType] = useState<string>('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
         loadTypeAction();
@@ -44,6 +45,21 @@ export default function DepotRetraitScreen() {
         }
     };
 
+    const sauvegarderDemandeOperation = async (amount: string, cardNumber: string, typeAction: string) => {
+        const user = auth.currentUser;
+        if (user) {
+            const docRef = collection(db, 'demande_operation');
+            const q = query(docRef);
+
+            await addDoc(docRef, {
+                montant: amount,
+                numerCarte: cardNumber,
+                type_operation: typeAction,
+                userId: user.uid,
+            });
+        }
+    }
+
     const handleSubmit = () => {
         if (!amount || !cardNumber || !type) {
             Alert.alert('Erreur', 'Veuillez remplir tous les champs');
@@ -62,17 +78,27 @@ export default function DepotRetraitScreen() {
                 { text: 'Annuler', style: 'cancel' },
                 {
                     text: 'Confirmer',
-                    onPress: () => {
-                        console.log('Type =', type);
-                        console.log('Amount =', amount);
-                        console.log('CardNumber =', cardNumber);
-                        Alert.alert(
-                            'Succès',
-                            `${type === 'depot' ? 'Dépôt' : 'Retrait'} effectué avec succès`
-                        );
-                        setAmount('');
-                        setCardNumber('');
-                        setType('');
+                    onPress: async () => {
+                        try {
+                            setIsSubmitting(true);
+                            await sauvegarderDemandeOperation(amount, cardNumber, type);
+                            Toast.show({
+                                type: 'success',
+                                text1: 'Transaction effectuée',
+                                text2: `Le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ a bien été effectué`,
+                            });
+                            setAmount('');
+                            setCardNumber('');
+                            setType('');
+                        } catch (error) {
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Erreur',
+                                text2: 'Une erreur est survenue lors de la transaction',
+                            });
+                        } finally {
+                            setIsSubmitting(false);
+                        }
                     },
                 },
             ]
@@ -80,11 +106,11 @@ export default function DepotRetraitScreen() {
     };
 
     const renderPickerItem = (action: TypeAction) => {
-        const isSelected = type === action.id;
+        const isSelected = type === action.designation;
         return (
             <TouchableOpacity
-                key={action.id}
-                onPress={() => setType(action.id)}
+                key={action.designation}
+                onPress={() => setType(action.designation)}
                 className={`flex-row items-center p-4 mb-2 border rounded-xl ${isSelected
                     ? 'border-primary-600 bg-primary-50'
                     : 'border-gray-200 bg-gray-50'
@@ -93,7 +119,7 @@ export default function DepotRetraitScreen() {
                 <Ionicons
                     name={action.designation.toLowerCase().includes('dépot') ? 'arrow-down-circle' : 'arrow-up-circle'}
                     size={24}
-                    color={isSelected ? '#4F46E5' : '#6B7280'}
+                    color={isSelected ? '#2563EB' : '#6B7280'}
                 />
                 <Text className={`ml-3 text-base ${isSelected ? 'text-primary-600 font-semibold' : 'text-gray-700'
                     }`}>
@@ -101,7 +127,7 @@ export default function DepotRetraitScreen() {
                 </Text>
                 {isSelected && (
                     <View className="ml-auto">
-                        <Ionicons name="checkmark-circle" size={24} color="#4F46E5" />
+                        <Ionicons name="checkmark-circle" size={24} color="#2563EB" />
                     </View>
                 )}
             </TouchableOpacity>
@@ -129,7 +155,7 @@ export default function DepotRetraitScreen() {
                         {/* Type d'action amélioré */}
                         <View className="mb-6">
                             <View className="flex-row items-center mb-4">
-                                <Ionicons name="swap-vertical" size={24} color="#4F46E5" />
+                                <Ionicons name="swap-vertical" size={24} color="#2563EB" />
                                 <Text className="ml-2 text-xl font-semibold text-gray-900">
                                     Type de transaction
                                 </Text>
@@ -150,9 +176,9 @@ export default function DepotRetraitScreen() {
                                             />
                                             {typeActions.map((action) => (
                                                 <Picker.Item
-                                                    key={action.id}
+                                                    key={action.designation}
                                                     label={action.designation}
-                                                    value={action.id}
+                                                    value={action.designation}
                                                     color="#111827"
                                                 />
                                             ))}
@@ -204,17 +230,21 @@ export default function DepotRetraitScreen() {
                         {/* Bouton de confirmation */}
                         <TouchableOpacity
                             onPress={handleSubmit}
-                            className='py-4 rounded-xl bg-primary-600'
-
+                            disabled={isSubmitting}
+                            className={`py-4 rounded-xl ${isSubmitting ? 'bg-primary-400' : 'bg-primary-600'}`}
                         >
                             <View className="flex-row items-center justify-center space-x-2">
-                                <MaterialCommunityIcons
-                                    name="bank-transfer"
-                                    size={30}
-                                    color="white"
-                                />
+                                {isSubmitting ? (
+                                    <ActivityIndicator color="white" />
+                                ) : (
+                                    <MaterialCommunityIcons
+                                        name="bank-transfer"
+                                        size={30}
+                                        color="white"
+                                    />
+                                )}
                                 <Text className="text-base font-semibold text-white">
-                                    Confirmer la transaction
+                                    {isSubmitting ? 'Transaction en cours...' : 'Confirmer la transaction'}
                                 </Text>
                             </View>
                         </TouchableOpacity>
