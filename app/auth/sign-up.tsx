@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../../firebase/firebaseConfig';
+import Toast from 'react-native-toast-message';
 
 
 
@@ -48,6 +49,11 @@ export default function SignUpScreen() {
             setLoading(true);
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
+                Toast.show({
+                    type: 'success',
+                    text1: 'Compte créé',
+                    text2: 'Bienvenue sur notre plateforme',
+                });
                 router.replace('/auth/sign-in');
             } catch (error: any) {
                 alert(error.message);
