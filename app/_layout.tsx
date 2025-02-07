@@ -11,7 +11,6 @@ import { StatusBarManager } from '@/components/StatusBarManager';
 import 'react-native-url-polyfill/auto';
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
-import { getMessaging, getToken } from "firebase/messaging";
 
 
 Notifications.setNotificationHandler({
@@ -23,18 +22,6 @@ Notifications.setNotificationHandler({
 });
 
 
-const messaging = getMessaging();
-
-const getFCMToken = async () => {
-    try {
-        const fcmToken = await getToken(messaging, { vapidKey: "YOUR_FCM_VAPID_KEY" });
-        alert("fccc" + fcmToken);
-        console.log("FCM Token:", fcmToken);
-        return fcmToken;
-    } catch (error) {
-        console.error("Erreur lors de la récupération du token FCM :", error);
-    }
-};
 
 async function registerForPushNotificationsAsync() {
     let token;
@@ -58,7 +45,7 @@ async function registerForPushNotificationsAsync() {
             alert('Failed to get push token for push notification!');
             return;
         }
-        token = (await Notifications.getDevicePushTokenAsync()).data;
+        token = (await Notifications.getExpoPushTokenAsync()).data;
         console.log('push token', token);
         alert(token);
     } else {
@@ -84,10 +71,6 @@ export default function RootLayout() {
             SplashScreen.hideAsync();
         }
         registerForPushNotificationsAsync();
-        const receivedSubscription = Notifications.addNotificationReceivedListener(notification => {
-            console.log('Notification reçue !', notification);
-            // Gère la notification reçue, par exemple, mets à jour l'état de l'application
-        });
     }, [loaded]);
 
     if (!loaded) {
