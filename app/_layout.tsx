@@ -10,7 +10,6 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { StatusBarManager } from '@/components/StatusBarManager';
 import 'react-native-url-polyfill/auto';
 import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 
 
 Notifications.setNotificationHandler({
@@ -21,38 +20,6 @@ Notifications.setNotificationHandler({
     }),
 });
 
-
-async function registerForPushNotificationsAsync() {
-    let token;
-
-    if (Platform.OS === 'android') {
-        await Notifications.setNotificationChannelAsync('default', {
-            name: 'default',
-            importance: Notifications.AndroidImportance.MAX,
-            vibrationPattern: [0, 250, 250, 250],
-            lightColor: '#FF231F7C',
-        });
-    }
-    if (Device.isDevice) {
-        const { status: existingStatus } = await Notifications.getPermissionsAsync();
-        let finalStatus = existingStatus;
-        if (existingStatus !== 'granted') {
-            const { status } = await Notifications.requestPermissionsAsync();
-            finalStatus = status;
-        }
-        if (finalStatus !== 'granted') {
-            alert('Failed to get push token for push notification!');
-            return;
-        }
-        token = (await Notifications.getExpoPushTokenAsync()).data;
-        console.log('push token', token);
-        alert(token);
-    } else {
-        alert('Must use physical device for Push Notifications');
-    }
-
-    return token;
-}
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -69,7 +36,6 @@ export default function RootLayout() {
         if (loaded) {
             SplashScreen.hideAsync();
         }
-        registerForPushNotificationsAsync();
     }, [loaded]);
 
     if (!loaded) {

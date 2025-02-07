@@ -9,7 +9,6 @@ import { signOut } from 'firebase/auth';
 import { router } from 'expo-router';
 import { ImageKitService } from '@/service/imageKitService';
 import Toast from "react-native-toast-message";
-import { getFCMToken } from '@/utils/notifications';
 
 export default function ProfileScreen() {
     const [image, setImage] = useState<string | null>(null);

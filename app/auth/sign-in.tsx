@@ -5,6 +5,8 @@ import { Feather } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/firebase/firebaseConfig';
+import { updatePushToken } from '@/utils/notification';
+import Toast from 'react-native-toast-message';
 
 export default function SignInScreen() {
     const [loading, setLoading] = useState(false);
@@ -16,6 +18,12 @@ export default function SignInScreen() {
         setLoading(true);
         try {
             await signInWithEmailAndPassword(auth, email, password);
+            await updatePushToken();
+            Toast.show({
+                type: 'success',
+                text1: 'Connexion réussie',
+                text2: 'Bienvenue sur notre plateforme',
+            });
             router.replace('/(tabs)/content/marche');
         } catch (error: any) {
             alert("Erreur lors de la connexion:\n veuillez verifier vos identifiants");
