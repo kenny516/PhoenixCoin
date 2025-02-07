@@ -1,7 +1,6 @@
 import { Tabs } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { View, Text, Platform, Animated } from 'react-native';
-import { useMemo } from 'react';
 
 const TabBarIcon = ({ name, color, focused }: { name: any; color: string; focused: boolean }) => {
     return (
@@ -50,20 +49,21 @@ export default function TabLayout() {
                     paddingBottom: Platform.OS === 'ios' ? 20 : 10,
                 },
                 tabBarActiveTintColor: '#2563eb',
-                tabBarInactiveTintColor: '#64748B',
+                tabBarInactiveTintColor: '#93C5FD',
                 tabBarShowLabel: true,
                 tabBarItemStyle: {
                     padding: 4,
                 },
             }}>
             <Tabs.Screen
-                name="market"
+                name="marche"
                 options={{
                     title: 'marché',
+
                     tabBarIcon: ({ focused }) => (
                         <TabBarIcon
                             name="chart-line"
-                            color={focused ? '#2563eb' : '#64748B'}
+                            color={focused ? '#2563eb' : '#93C5FD'}
                             focused={focused}
                         />
                     ),
@@ -71,13 +71,13 @@ export default function TabLayout() {
             />
 
             <Tabs.Screen
-                name="portfolio"
+                name="portefeuille"
                 options={{
                     title: 'Portefeuille',
                     tabBarIcon: ({ focused }) => (
                         <TabBarIcon
                             name="wallet"
-                            color={focused ? '#2563eb' : '#64748B'}
+                            color={focused ? '#2563eb' : '#93C5FD'}
                             focused={focused}
                         />
                     ),
@@ -91,7 +91,7 @@ export default function TabLayout() {
                     tabBarIcon: ({ focused }) => (
                         <TabBarIcon
                             name="bank"
-                            color={focused ? '#2563eb' : '#64748B'}
+                            color={focused ? '#2563eb' : '#93C5FD'}
                             focused={focused}
                         />
                     ),
@@ -101,11 +101,11 @@ export default function TabLayout() {
             <Tabs.Screen
                 name="profile"
                 options={{
-                    title: 'profile',
+                    title: 'profil',
                     tabBarIcon: ({ focused }) => (
                         <TabBarIcon
                             name="account-outline"
-                            color={focused ? '#2563eb' : '#64748B'}
+                            color={focused ? '#2563eb' : '#93C5FD'}
                             focused={focused}
                         />
                     ),

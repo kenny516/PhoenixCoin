@@ -1,18 +1,67 @@
-import { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-
-type TransactionType = 'depot' | 'retrait';
+import { Picker } from '@react-native-picker/picker';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { auth, db } from '@/firebase/firebaseConfig';
+import { addDoc, collection, getDocs, query } from 'firebase/firestore';
+import Toast from 'react-native-toast-message';
+import { TypeAction } from '@/utils/type';
 
 export default function DepotRetraitScreen() {
-    const [amount, setAmount] = useState('');
-    const [cardNumber, setCardNumber] = useState('');
-    const [type, setType] = useState<TransactionType>('depot');
+    const [amount, setAmount] = useState<string>('');
+    const [cardNumber, setCardNumber] = useState<string>('');
+    const [typeActions, setTypeActions] = useState<TypeAction[]>([]);
+    const [type, setType] = useState<string>('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    useEffect(() => {
+        loadTypeAction();
+    }, []);
+
+    const loadTypeAction = async () => {
+        try {
+            const user = auth.currentUser;
+            if (user) {
+                const docRef = collection(db, 'type_action');
+                const q = query(docRef);
+                const querySnapshot = await getDocs(q);
+
+                const typeActionListe: TypeAction[] = querySnapshot.docs.map((doc) => ({
+                    id: doc.id,
+                    designation: doc.data().designation,
+                }));
+
+                setTypeActions(typeActionListe);
+            }
+        } catch (error) {
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur de connexion',
+                text2: 'Veuillez vérifier votre connexion internet 🛜',
+            });
+            console.error('Error loading type actions:', error);
+        }
+    };
+
+    const sauvegarderDemandeOperation = async (amount: string, cardNumber: string, typeAction: string) => {
+        const user = auth.currentUser;
+        if (user) {
+            const docRef = collection(db, 'demande_operation');
+            const q = query(docRef);
+
+            await addDoc(docRef, {
+                montant: amount,
+                numerCarte: cardNumber,
+                type_operation: typeAction,
+                userId: user.uid,
+            });
+        }
+    }
 
     const handleSubmit = () => {
-        if (!amount || !cardNumber) {
+        if (!amount || !cardNumber || !type) {
             Alert.alert('Erreur', 'Veuillez remplir tous les champs');
             return;
         }
@@ -29,100 +78,177 @@ export default function DepotRetraitScreen() {
                 { text: 'Annuler', style: 'cancel' },
                 {
                     text: 'Confirmer',
-                    onPress: () => {
-                        // process depot ou retrait
-                        console.log("type = ", type);
-                        console.log("amount = ", amount);
-                        console.log("cardNumber = ", cardNumber);
-                        Alert.alert('Succès', `${type === 'depot' ? 'Dépôt' : 'Retrait'} effectué avec succès`);
-                        setAmount('');
-                        setCardNumber('');
-                    }
-                }
+                    onPress: async () => {
+                        try {
+                            setIsSubmitting(true);
+                            await sauvegarderDemandeOperation(amount, cardNumber, type);
+                            Toast.show({
+                                type: 'success',
+                                text1: 'Transaction effectuée',
+                                text2: `Le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ a bien été effectué`,
+                            });
+                            setAmount('');
+                            setCardNumber('');
+                            setType('');
+                        } catch (error) {
+                            Toast.show({
+                                type: 'error',
+                                text1: 'Erreur',
+                                text2: 'Une erreur est survenue lors de la transaction',
+                            });
+                        } finally {
+                            setIsSubmitting(false);
+                        }
+                    },
+                },
             ]
         );
     };
 
-    return (
-        <SafeAreaView className="flex-1 bg-gray-50">
-            <LinearGradient
-                colors={['#2563EB', '#3B82F6']}
-                className="p-4"
+    const renderPickerItem = (action: TypeAction) => {
+        const isSelected = type === action.designation;
+        return (
+            <TouchableOpacity
+                key={action.designation}
+                onPress={() => setType(action.designation)}
+                className={`flex-row items-center p-4 mb-2 border rounded-xl ${isSelected
+                    ? 'border-primary-600 bg-primary-50'
+                    : 'border-gray-200 bg-gray-50'
+                    }`}
             >
-                <Text className="text-2xl font-bold text-white">
-                    {type === 'depot' ? 'Dépôt' : 'Retrait'}
+                <Ionicons
+                    name={action.designation.toLowerCase().includes('dépot') ? 'arrow-down-circle' : 'arrow-up-circle'}
+                    size={24}
+                    color={isSelected ? '#2563EB' : '#6B7280'}
+                />
+                <Text className={`ml-3 text-base ${isSelected ? 'text-primary-600 font-semibold' : 'text-gray-700'
+                    }`}>
+                    {action.designation}
                 </Text>
-            </LinearGradient>
+                {isSelected && (
+                    <View className="ml-auto">
+                        <Ionicons name="checkmark-circle" size={24} color="#2563EB" />
+                    </View>
+                )}
+            </TouchableOpacity>
+        );
+    };
 
-            <ScrollView className="flex-1 p-4">
-                <View className="flex-row justify-around mb-6">
-                    <TouchableOpacity
-                        onPress={() => setType('depot')}
-                        className={`flex-1 flex-row items-center justify-center p-4 rounded-xl mx-2 shadow-sm
-                            ${type === 'depot'
-                                ? 'bg-accent-500'
-                                : 'bg-gray-50 border border-accent-100'}`}
-                    >
-                        <MaterialCommunityIcons
-                            name="bank-transfer-in"
-                            size={24}
-                            color={type === 'depot' ? 'white' : '#10B981'}
-                        />
-                        <Text className={`ml-3 font-bold ${type === 'depot' ? 'text-white' : 'text-accent-500'}`}>
-                            Dépôt
-                        </Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        onPress={() => setType('retrait')}
-                        className={`flex-1 flex-row items-center justify-center p-4 rounded-xl mx-2 shadow-sm
-                            ${type === 'retrait'
-                                ? 'bg-primary-500'
-                                : 'bg-gray-50 border border-primary-100'}`}
-                    >
-                        <MaterialCommunityIcons
-                            name="bank-transfer-out"
-                            size={24}
-                            color={type === 'retrait' ? 'white' : '#3B82F6'}
-                        />
-                        <Text className={`ml-3 font-bold ${type === 'retrait' ? 'text-white' : 'text-primary-500'}`}>
-                            Retrait
-                        </Text>
-                    </TouchableOpacity>
+    return (
+        <SafeAreaView className="flex-1 bg-gray-100">
+            {/* Header */}
+            <View
+                className="w-full p-4 pt-4 bg-primary-600"
+            >
+                <View className="flex-row items-center justify-between">
+                    <Text className="text-2xl font-bold text-white">
+                        Transactions
+                    </Text>
+                    <Ionicons name="wallet-outline" size={24} color="white" />
                 </View>
+            </View>
 
-                <View className="p-4 space-y-6 bg-white shadow-md rounded-xl">
-                    <View>
-                        <Text className="mb-1 text-sm font-medium text-gray-700">Montant (€)</Text>
-                        <TextInput
-                            value={amount}
-                            onChangeText={setAmount}
-                            keyboardType="numeric"
-                            placeholder="0.00"
-                            className="p-3 bg-white border border-gray-200 rounded-lg"
-                        />
+            <ScrollView className="flex-1 px-4">
+                {/* Card principale */}
+                <View className="mt-4 overflow-hidden bg-white shadow-sm rounded-3xl">
+                    <View className="p-5">
+                        {/* Type d'action amélioré */}
+                        <View className="mb-6">
+                            <View className="flex-row items-center mb-4">
+                                <Ionicons name="swap-vertical" size={24} color="#2563EB" />
+                                <Text className="ml-2 text-xl font-semibold text-gray-900">
+                                    Type de transaction
+                                </Text>
+                            </View>
+
+                            <View className="space-y-2">
+                                {Platform.OS === 'ios' ? (
+                                    <View className="overflow-hidden border border-gray-200 rounded-xl bg-gray-50">
+                                        <Picker
+                                            selectedValue={type}
+                                            onValueChange={setType}
+                                            itemStyle={{ height: 120, fontSize: 16 }}
+                                        >
+                                            <Picker.Item
+                                                label="Sélectionner un type"
+                                                value=""
+                                                color="#6B7280"
+                                            />
+                                            {typeActions.map((action) => (
+                                                <Picker.Item
+                                                    key={action.designation}
+                                                    label={action.designation}
+                                                    value={action.designation}
+                                                    color="#111827"
+                                                />
+                                            ))}
+                                        </Picker>
+                                    </View>
+                                ) : (
+                                    <View className="space-y-2">
+                                        {typeActions.map(renderPickerItem)}
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+
+                        {/* Montant */}
+                        <View className="mb-6">
+                            <Text className="mb-2 text-base font-semibold text-gray-700">
+                                Montant (€)
+                            </Text>
+                            <View className="flex-row items-center px-4 border border-gray-200 rounded-xl bg-gray-50">
+                                <Ionicons name="cash-outline" size={20} color="#6B7280" />
+                                <TextInput
+                                    value={amount}
+                                    onChangeText={setAmount}
+                                    keyboardType="numeric"
+                                    placeholder="0.00"
+                                    className="flex-1 p-3 ml-2 text-gray-700"
+                                />
+                            </View>
+                        </View>
+
+                        {/* Numéro de carte */}
+                        <View className="mb-6">
+                            <Text className="mb-2 text-base font-semibold text-gray-700">
+                                Numéro de carte
+                            </Text>
+                            <View className="flex-row items-center px-4 border border-gray-200 rounded-xl bg-gray-50">
+                                <Ionicons name="card-outline" size={20} color="#6B7280" />
+                                <TextInput
+                                    value={cardNumber}
+                                    onChangeText={setCardNumber}
+                                    keyboardType="numeric"
+                                    placeholder="1234 5678 9012 3456"
+                                    maxLength={19}
+                                    className="flex-1 p-3 ml-2 text-gray-700"
+                                />
+                            </View>
+                        </View>
+
+                        {/* Bouton de confirmation */}
+                        <TouchableOpacity
+                            onPress={handleSubmit}
+                            disabled={isSubmitting}
+                            className={`py-4 rounded-xl ${isSubmitting ? 'bg-primary-400' : 'bg-primary-600'}`}
+                        >
+                            <View className="flex-row items-center justify-center space-x-2">
+                                {isSubmitting ? (
+                                    <ActivityIndicator color="white" />
+                                ) : (
+                                    <MaterialCommunityIcons
+                                        name="bank-transfer"
+                                        size={30}
+                                        color="white"
+                                    />
+                                )}
+                                <Text className="text-base font-semibold text-white">
+                                    {isSubmitting ? 'Transaction en cours...' : 'Confirmer la transaction'}
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
                     </View>
-
-                    <View>
-                        <Text className="mb-1 text-sm font-medium text-gray-700">Numéro de carte</Text>
-                        <TextInput
-                            value={cardNumber}
-                            onChangeText={setCardNumber}
-                            keyboardType="numeric"
-                            placeholder="1234 5678 9012 3456"
-                            maxLength={19}
-                            className="p-3 bg-white border border-gray-200 rounded-lg"
-                        />
-                    </View>
-
-                    <TouchableOpacity
-                        onPress={handleSubmit}
-                        className={`p-4 rounded-xl ${type === 'depot' ? 'bg-accent-500' : 'bg-primary-500'}`}
-                    >
-                        <Text className="text-lg font-bold text-center text-white">
-                            {type === 'depot' ? 'Confirmer le dépôt' : 'Confirmer le retrait'}
-                        </Text>
-                    </TouchableOpacity>
                 </View>
             </ScrollView>
         </SafeAreaView>

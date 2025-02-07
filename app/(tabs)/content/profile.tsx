@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, Platform, SafeAreaView, StatusBar, Alert, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Platform, SafeAreaView, StatusBar, Alert, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,12 +13,13 @@ import Toast from "react-native-toast-message";
 export default function ProfileScreen() {
     const [image, setImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [updating, setUpdating] = useState(false);  // nouvel état pour le chargement
     const [userInfo, setUserInfo] = useState({
-        pseudo: "",
+        nom: "",
+        prenom: "",
         email: "",
-        dateNaissance: "",
-        telephone: "",
-        adresse: ""
+        pdp: "",
+        date_naissance: "",
     });
 
     useEffect(() => {
@@ -29,19 +30,19 @@ export default function ProfileScreen() {
         try {
             const user = auth.currentUser;
             if (user) {
-                const docRef = doc(db, "profiles", user.uid);
+                const docRef = doc(db, "profil", user.uid);
                 const docSnap = await getDoc(docRef);
 
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     setUserInfo({
-                        pseudo: data.username || '',
+                        nom: data.nom || '',
+                        prenom: data.prenom || '',
                         email: user.email || '',
-                        dateNaissance: data.dateNaissance || '',
-                        telephone: data.telephone || '',
-                        adresse: data.adresse || ''
+                        pdp: data.pdp || '',
+                        date_naissance: data.date_naissance || '',
                     });
-                    setImage(data.avatarUrl);
+                    setImage(data.pdp);
                 }
             }
         } catch (error) {
@@ -53,17 +54,17 @@ export default function ProfileScreen() {
     };
 
     const updateProfile = async (imageUri: string) => {
+        setUpdating(true);
         try {
             const user = auth.currentUser;
             if (!user) throw new Error('No user');
             const imageService = new ImageKitService();
             console.log('Uploading image...');
-            const imageUrl = await imageService.uploadImage(imageUri, "test");
-            console.log('Profile updated:' + imageUrl.url);
-            const userRef = doc(db, "profiles", user.uid);
+            const imageUrl = await imageService.uploadImage(imageUri, userInfo.email);
+            const userRef = doc(db, "profil", user.uid);
 
             await updateDoc(userRef, {
-                avatarUrl: imageUrl,
+                pdp: imageUrl.url,
                 updatedAt: new Date()
             });
             setImage(imageUrl.url);
@@ -73,7 +74,13 @@ export default function ProfileScreen() {
                 text2: "photo de profiele modifier ✅",
             });
         } catch (error) {
-            Alert.alert('Erreur', 'Impossible de mettre à jour le profil');
+            Toast.show({
+                type: "error",
+                text1: "Erreur de connection",
+                text2: "Veuillez verifier votre connection internet 🛜",
+            });
+        } finally {
+            setUpdating(false);
         }
     };
 
@@ -84,7 +91,6 @@ export default function ProfileScreen() {
             aspect: [1, 1],
             quality: 1,
         });
-
         if (!result.canceled) {
             setImage(result.assets[0].uri);
             await updateProfile(result.assets[0].uri);
@@ -97,13 +103,11 @@ export default function ProfileScreen() {
             alert('Désolé, nous avons besoin des permissions pour accéder à votre caméra!');
             return;
         }
-
         const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
             aspect: [1, 1],
             quality: 1,
         });
-
         if (!result.canceled) {
             setImage(result.assets[0].uri);
             await updateProfile(result.assets[0].uri);
@@ -123,8 +127,8 @@ export default function ProfileScreen() {
         <View className="flex-row items-center justify-between py-3 border-b border-secondary-100">
             <View className="flex-row items-center gap-2 space-x-3">
                 {icon && (
-                    <View className="p-1.5 rounded-lg bg-primary-50">
-                        <Feather name={icon} size={18} className="text-primary-500" />
+                    <View className="p-2 rounded-lg shadow-sm bg-primary-100">
+                        <Feather name={icon} size={20} color="#3B82F6" style={{ opacity: 0.9 }} />
                     </View>
                 )}
                 <Text className="text-sm text-text-muted">{label}</Text>
@@ -141,16 +145,13 @@ export default function ProfileScreen() {
         }}>
             <ScrollView className="flex-1">
                 {/* En-tête avec dégradé */}
-                <LinearGradient
-                    colors={['#3B82F6', '#2563EB']}
-                    className="px-4 pt-6 pb-20"
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                <View
+                    className="px-4 pt-6 pb-20 bg-primary-600"
                 >
                     <View className="flex-row items-center space-x-3">
                         <Text className="text-2xl font-bold text-background-light">Profil</Text>
                     </View>
-                </LinearGradient>
+                </View>
 
                 <View className="px-4 -mt-16">
                     {/* Photo de profil avec actions */}
@@ -158,7 +159,11 @@ export default function ProfileScreen() {
                         <View className="items-center">
                             <View className="relative mb-6">
                                 <View className="w-32 h-32 overflow-hidden rounded-full shadow-xl">
-                                    {image ? (
+                                    {updating ? (
+                                        <View className="items-center justify-center w-full h-full bg-gray-100">
+                                            <ActivityIndicator size="large" color="#3B82F6" />
+                                        </View>
+                                    ) : image ? (
                                         <Image
                                             source={{ uri: image }}
                                             className="w-full h-full"
@@ -207,7 +212,8 @@ export default function ProfileScreen() {
 
                             <TouchableOpacity
                                 onPress={pickImage}
-                                className="flex-row items-center justify-center w-full gap-2 p-6 px-6 py-4 space-x-3 bg-primary-500 rounded-xl"
+                                disabled={updating}
+                                className={`flex-row items-center justify-center w-full gap-2 p-6 px-6 py-4 space-x-3 rounded-xl ${updating ? 'bg-gray-400' : 'bg-primary-500'}`}
                                 style={{
                                     shadowColor: '#3B82F6',
                                     shadowOffset: { width: 0, height: 4 },
@@ -215,10 +221,16 @@ export default function ProfileScreen() {
                                     shadowRadius: 6,
                                     elevation: 4
                                 }}>
-                                <Feather name="image" size={20} color="#fff" />
-                                <Text className="text-base font-bold text-white">
-                                    Choisir depuis la galerie
-                                </Text>
+                                {updating ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <>
+                                        <Feather name="image" size={20} color="#fff" />
+                                        <Text className="text-base font-bold text-white">
+                                            Choisir depuis la galerie
+                                        </Text>
+                                    </>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -226,20 +238,32 @@ export default function ProfileScreen() {
                     {/* Informations personnelles */}
                     <View className="p-5 shadow-xl bg-background-light rounded-2xl">
                         <View className="flex-row items-center gap-2 mb-5 space-x-3">
-                            <View className="p-2 rounded-xl bg-primary-50">
-                                <Feather name="user" size={22} className="text-primary-500" />
-                            </View>
                             <Text className="text-lg font-bold text-text-light">
                                 Informations personnelles
                             </Text>
                         </View>
 
-                        <View className="space-y-0.5 divide-y divide-secondary-100">
-                            <InfoRow label="Pseudo" value={userInfo.pseudo} icon="at-sign" />
-                            <InfoRow label="Email" value={userInfo.email} icon="mail" />
-                            <InfoRow label="Date de naissance" value={userInfo.dateNaissance} icon="calendar" />
-                            <InfoRow label="Téléphone" value={userInfo.telephone} icon="phone" />
-                            <InfoRow label="Adresse" value={userInfo.adresse} icon="map-pin" />
+                        <View className="space-y-1 divide-y divide-secondary-100">
+                            <InfoRow
+                                label="Nom"
+                                value={userInfo.nom || 'Non renseigné'}
+                                icon="user"
+                            />
+                            <InfoRow
+                                label="Prénom"
+                                value={userInfo.prenom || 'Non renseigné'}
+                                icon="user"
+                            />
+                            <InfoRow
+                                label="Email"
+                                value={userInfo.email || 'Non renseigné'}
+                                icon="mail"
+                            />
+                            <InfoRow
+                                label="Date de naissance"
+                                value={userInfo.date_naissance || 'Non renseignée'}
+                                icon="calendar"
+                            />
                         </View>
                         {/* Bouton de déconnexion */}
                         <TouchableOpacity
@@ -259,9 +283,6 @@ export default function ProfileScreen() {
                             </Text>
                         </TouchableOpacity>
                     </View>
-
-
-
                     <View className="h-6" />
                 </View>
             </ScrollView>

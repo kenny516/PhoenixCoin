@@ -1,15 +1,27 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import 'react-native-reanimated';
 import "../global.css";
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { StatusBarManager } from '@/components/StatusBarManager';
 import 'react-native-url-polyfill/auto';
+import * as Notifications from 'expo-notifications';
+import Toast from 'react-native-toast-message';
+
+
+Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: false,
+        shouldSetBadge: false,
+    }),
+});
+
+
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -21,6 +33,7 @@ export default function RootLayout() {
     });
 
     useEffect(() => {
+
         if (loaded) {
             SplashScreen.hideAsync();
         }
@@ -29,6 +42,8 @@ export default function RootLayout() {
     if (!loaded) {
         return null;
     }
+
+
 
     return (
         <>
@@ -44,6 +59,7 @@ export default function RootLayout() {
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                     <Stack.Screen name="+not-found" />
                 </Stack>
+                <Toast />
             </View>
         </>
     );

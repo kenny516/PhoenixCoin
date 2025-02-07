@@ -1,50 +1,96 @@
-# Welcome to your Expo app 👋
+<div align="center">
+  <img src="./assets/images/logo.png" alt="Phoenix Coin Logo" width="120"/>
+  
+  # Phoenix Coin
+  
+  🚀 Une application mobile de trading de cryptomonnaies moderne et sécurisée
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+  [![Expo](https://img.shields.io/badge/Expo-52.0.28-blue.svg)](https://expo.dev)
+  [![React Native](https://img.shields.io/badge/React%20Native-0.76.6-blue.svg)](https://reactnative.dev)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-5.3.3-blue.svg)](https://www.typescriptlang.org)
+</div>
 
-## Get started
+## 📱 Aperçu
 
-1. Install dependencies
+Phoenix Coin est une plateforme mobile de trading de cryptomonnaies qui offre une expérience utilisateur fluide et sécurisée. L'application permet aux utilisateurs de gérer leurs portefeuilles, suivre les cours en temps réel et effectuer des transactions en toute sécurité.
 
+## ✨ Fonctionnalités
+
+- 🔐 Authentification sécurisée avec Firebase
+- 📊 Suivi des cours en temps réel
+- 💱 Trading de cryptomonnaies
+- 📈 Graphiques interactifs avec react-native-gifted-charts
+- 🌓 Thème clair/sombre automatique
+- 📱 Interface utilisateur réactive et moderne avec NativeWind
+
+## 🛠️ Technologies Utilisées
+
+- **Frontend**
+  - React Native
+  - Expo Router
+  - TypeScript
+  - NativeWind (Tailwind CSS)
+  - React Native Reanimated
+
+- **Backend & Services**
+  - Firebase Authentication
+  - Firebase Firestore
+  - Expo Notifications
+  - ImageKit pour la gestion des images
+
+## 🚀 Installation
+
+1. **Cloner le projet**
+   ```bash
+   git clone [votre-repo-url]
+   cd phoenix-coin
+   ```
+
+2. **Installer les dépendances**
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. **Configuration des variables d'environnement**
    ```bash
-    npx expo start
+   cp .env.example .env
+   ```
+   Remplissez les variables d'environnement nécessaires dans le fichier `.env`
+
+4. **Lancer l'application**
+   ```bash
+   npm start
    ```
 
-In the output, you'll find options to open the app in a
+## 📱 Scripts Disponibles
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- `npm start` - Lance le serveur de développement Expo
+- `npm run android` - Lance l'application sur Android
+- `npm run ios` - Lance l'application sur iOS
+- `npm run web` - Lance l'application en version web
+- `npm run test` - Lance les tests
+- `npm run lint` - Vérifie le code avec le linter
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## 🏗️ Structure du Projet
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+phoenix-coin/
+├── app/                    # Routes et pages de l'application
+│   ├── (tabs)/            # Navigation par onglets
+│   ├── auth/              # Pages d'authentification
+│   └── content/           # Contenu principal
+├── assets/                # Images et ressources statiques
+├── components/            # Composants réutilisables
+├── firebase/             # Configuration Firebase
+├── hooks/                # Custom hooks
+├── stores/               # État global (Zustand)
+└── types/                # Définitions TypeScript
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 📄 License
 
-## Learn more
+Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
 
-To learn more about developing your project with Expo, look at the following resources:
+## 👥 Contribution
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou à soumettre une pull request.

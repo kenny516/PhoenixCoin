@@ -14,10 +14,11 @@
         "android": {
             "buildType": "apk",
             "adaptiveIcon": {
-                "foregroundImage": "./assets/images/adaptive-icon.png",
+                "foregroundImage": "./assets/images/logo.png",
                 "backgroundColor": "#ffffff"
             },
-            "package": "com.andriantsirafychankenny.phoenixcoin"
+            "googleServicesFile": "./firebase/google-services.json",
+            "package": "group.phoenixCoin"
         },
         "web": {
             "bundler": "metro",
@@ -29,7 +30,7 @@
             [
                 "expo-splash-screen",
                 {
-                    "image": "./assets/images/splash-icon.png",
+                    "image": "./assets/images/logo.png",
                     "imageWidth": 200,
                     "resizeMode": "contain",
                     "backgroundColor": "#ffffff"

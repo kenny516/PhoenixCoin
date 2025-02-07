@@ -5,20 +5,87 @@ import { Feather } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '@/firebase/firebaseConfig';
+import { updatePushToken } from '@/utils/notification';
+import Toast from 'react-native-toast-message';
+import { FirebaseError } from 'firebase/app';
 
 export default function SignInScreen() {
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [errors, setErrors] = useState({
+        email: '',
+        password: ''
+    });
+
+    const validateForm = () => {
+        let isValid = true;
+        const newErrors = {
+            email: '',
+            password: ''
+        };
+
+        if (!email) {
+            newErrors.email = 'L\'email est requis';
+            isValid = false;
+        } else if (!email.includes('@')) {
+            newErrors.email = 'Email invalide';
+            isValid = false;
+        }
+
+        if (!password) {
+            newErrors.password = 'Le mot de passe est requis';
+            isValid = false;
+        }
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
+    const getFirebaseErrorMessage = (error: FirebaseError) => {
+        switch (error.code) {
+            case 'auth/invalid-email':
+                return 'Adresse email invalide';
+            case 'auth/user-disabled':
+                return 'Ce compte a été désactivé';
+            case 'auth/user-not-found':
+                return 'Aucun compte trouvé avec cet email';
+            case 'auth/wrong-password':
+                return 'Mot de passe incorrect';
+            case 'auth/too-many-requests':
+                return 'Trop de tentatives de connexion. Veuillez réessayer plus tard';
+            case 'auth/network-request-failed':
+                return 'Problème de connexion internet';
+            default:
+                return 'Veuillez verifier vos identifiants.';
+        }
+    };
 
     const handleSignIn = async () => {
+        if (!validateForm()) return;
+
         setLoading(true);
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            router.replace('/(tabs)/content/market');
-        } catch (error: any) {
-            alert("Erreur lors de la connexion:\n veuillez verifier vos identifiants");
+            await updatePushToken();
+            Toast.show({
+                type: 'success',
+                text1: 'Connexion réussie',
+                text2: 'Bienvenue sur notre plateforme',
+                position: 'bottom',
+                visibilityTime: 4000,
+            });
+            router.replace('/(tabs)/content/marche');
+        } catch (error) {
+            const firebaseError = error as FirebaseError;
+            Toast.show({
+                type: 'error',
+                text1: 'Erreur de connexion',
+                text2: getFirebaseErrorMessage(firebaseError),
+                position: 'bottom',
+                visibilityTime: 4000,
+            });
         } finally {
             setLoading(false);
         }
@@ -50,11 +117,15 @@ export default function SignInScreen() {
                                     className="flex-1 p-4 text-text-light"
                                     placeholder="Entrez votre email"
                                     value={email}
-                                    onChangeText={setEmail}
+                                    onChangeText={(text) => {
+                                        setEmail(text);
+                                        if (errors.email) setErrors({ ...errors, email: '' });
+                                    }}
                                     keyboardType="email-address"
                                     autoCapitalize="none"
                                 />
                             </View>
+                            {errors.email ? <Text className="mt-1 text-red-500">{errors.email}</Text> : null}
                         </View>
 
                         <View>
@@ -65,13 +136,17 @@ export default function SignInScreen() {
                                     className="flex-1 p-4"
                                     placeholder="Entrez votre mot de passe"
                                     value={password}
-                                    onChangeText={setPassword}
+                                    onChangeText={(text) => {
+                                        setPassword(text);
+                                        if (errors.password) setErrors({ ...errors, password: '' });
+                                    }}
                                     secureTextEntry={!showPassword}
                                 />
                                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                                     <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#6B7280" />
                                 </TouchableOpacity>
                             </View>
+                            {errors.password ? <Text className="mt-1 text-red-500">{errors.password}</Text> : null}
                         </View>
                         <TouchableOpacity
                             onPress={handleSignIn}
