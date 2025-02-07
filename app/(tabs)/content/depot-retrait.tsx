@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
@@ -79,11 +79,40 @@ export default function DepotRetraitScreen() {
         );
     };
 
+    const renderPickerItem = (action: TypeAction) => {
+        const isSelected = type === action.id;
+        return (
+            <TouchableOpacity
+                key={action.id}
+                onPress={() => setType(action.id)}
+                className={`flex-row items-center p-4 mb-2 border rounded-xl ${isSelected
+                    ? 'border-primary-600 bg-primary-50'
+                    : 'border-gray-200 bg-gray-50'
+                    }`}
+            >
+                <Ionicons
+                    name={action.designation.toLowerCase().includes('dépot') ? 'arrow-down-circle' : 'arrow-up-circle'}
+                    size={24}
+                    color={isSelected ? '#4F46E5' : '#6B7280'}
+                />
+                <Text className={`ml-3 text-base ${isSelected ? 'text-primary-600 font-semibold' : 'text-gray-700'
+                    }`}>
+                    {action.designation}
+                </Text>
+                {isSelected && (
+                    <View className="ml-auto">
+                        <Ionicons name="checkmark-circle" size={24} color="#4F46E5" />
+                    </View>
+                )}
+            </TouchableOpacity>
+        );
+    };
+
     return (
         <SafeAreaView className="flex-1 bg-gray-100">
             {/* Header */}
             <View
-                className="w-full p-6 pt-8 bg-primary-600"
+                className="w-full p-4 pt-4 bg-primary-600"
             >
                 <View className="flex-row items-center justify-between">
                     <Text className="text-2xl font-bold text-white">
@@ -97,26 +126,43 @@ export default function DepotRetraitScreen() {
                 {/* Card principale */}
                 <View className="mt-4 overflow-hidden bg-white shadow-sm rounded-3xl">
                     <View className="p-5">
-                        {/* Type d'action */}
+                        {/* Type d'action amélioré */}
                         <View className="mb-6">
-                            <Text className="mb-2 text-base font-semibold text-gray-700">
-                                Type d'Action
-                            </Text>
-                            <View className="overflow-hidden border border-gray-200 rounded-xl bg-gray-50">
-                                <Picker
-                                    selectedValue={type}
-                                    onValueChange={setType}
-                                    style={{ height: 50 }}
-                                >
-                                    <Picker.Item label="Sélectionner un type" value="" />
-                                    {typeActions.map((action) => (
-                                        <Picker.Item
-                                            key={action.id}
-                                            label={action.designation}
-                                            value={action.id}
-                                        />
-                                    ))}
-                                </Picker>
+                            <View className="flex-row items-center mb-4">
+                                <Ionicons name="swap-vertical" size={24} color="#4F46E5" />
+                                <Text className="ml-2 text-xl font-semibold text-gray-900">
+                                    Type de transaction
+                                </Text>
+                            </View>
+
+                            <View className="space-y-2">
+                                {Platform.OS === 'ios' ? (
+                                    <View className="overflow-hidden border border-gray-200 rounded-xl bg-gray-50">
+                                        <Picker
+                                            selectedValue={type}
+                                            onValueChange={setType}
+                                            itemStyle={{ height: 120, fontSize: 16 }}
+                                        >
+                                            <Picker.Item
+                                                label="Sélectionner un type"
+                                                value=""
+                                                color="#6B7280"
+                                            />
+                                            {typeActions.map((action) => (
+                                                <Picker.Item
+                                                    key={action.id}
+                                                    label={action.designation}
+                                                    value={action.id}
+                                                    color="#111827"
+                                                />
+                                            ))}
+                                        </Picker>
+                                    </View>
+                                ) : (
+                                    <View className="space-y-2">
+                                        {typeActions.map(renderPickerItem)}
+                                    </View>
+                                )}
                             </View>
                         </View>
 

@@ -108,10 +108,8 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
 
             {/* Graphique */}
             <LineChart
-                data={mockChartData.map(item => ({
+                data={data.map(item => ({
                     value: item.value,
-                    label: formatDate(item.date),
-                    dataPointText: formatCurrency(item.value)
                 }))}
 
                 // Configuration du tracé
@@ -125,7 +123,7 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
                 hideDataPoints={false}
 
                 // Valeur maximale
-                maxValue={Math.max(...mockChartData.map(item => item.value))}
+                maxValue={Math.max(...data.map(item => item.value))}
 
                 // Couleurs et remplissage du graphique
                 color="#3b82f6"
@@ -156,7 +154,7 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
 
                 // Espacement et sections
                 spacing={Dimensions.get('window').width * 0.15}
-                yAxisOffset={Math.min(...mockChartData.map(item => item.value))}
+                yAxisOffset={Math.min(...data.map(item => item.value))}
                 noOfSections={5}
 
                 // Règles (grid lines) et indices
