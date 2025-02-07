@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, RefreshControl, ScrollView } from 'react-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialIcons } from '@expo/vector-icons';
-import { collection, query, where, getDocs, doc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, orderBy, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
 import {
     Profil,
@@ -30,140 +30,75 @@ const formatCryptoAmount = (amount: number) => {
     return amount < 0.01 ? amount.toFixed(8) : amount.toFixed(4);
 };
 
-// Données de test pour les transactions (le portefeuille sera déduit de ces transactions)
-const staticTransactions: Transaction[] = [
-    {
-        id: 't1',
-        dateAction: '2025-01-01T10:00:00.000Z',
-        cours: 50000, // prix au moment de la transaction
-        quantite: 0.1,
-        profil: {
-            id: 'p1',
-            email: 'test@example.com',
-            fondActuel: 5000,
-        },
-        crypto: {
-            id: 'c1',
-            designation: 'BTC',
-        },
-        transaction: {
-            id: '1',
-            designation: 'achat',
-        },
-    },
-    {
-        id: 't2',
-        dateAction: '2025-01-02T12:00:00.000Z',
-        cours: 55000,
-        quantite: 0.05,
-        profil: {
-            id: 'p1',
-            email: 'test@example.com',
-            fondActuel: 5000,
-        },
-        crypto: {
-            id: 'c1',
-            designation: 'BTC',
-        },
-        transaction: {
-            id: '2',
-            designation: 'vente',
-        },
-    },
-    {
-        id: 't3',
-        dateAction: '2025-01-03T15:00:00.000Z',
-        cours: 1800,
-        quantite: 2,
-        profil: {
-            id: 'p1',
-            email: 'test@example.com',
-            fondActuel: 5000,
-        },
-        crypto: {
-            id: 'c2',
-            designation: 'ETH',
-        },
-        transaction: {
-            id: '1',
-            designation: 'achat',
-        },
-    },
-];
-
-const statProfil: Profil = {
-    email: "cksmmowmc",
-    fondActuel: 2000,
-    id: "c,socmwomow"
-}
-
 export default function PortfolioScreen() {
-    const [profil, setProfil] = useState<Profil>(statProfil);
-    const [transactions, setTransactions] = useState<Transaction[]>(staticTransactions);
+    const [profil, setProfil] = useState<Profil>();
+    const [transactions, setTransactions] = useState<Transaction[]>([]);
     const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [isloading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        calculatePortfolio(staticTransactions);
-        setTransactions(staticTransactions);
-        //loadPortfolioData();
+        calculatePortfolio([]);
+        setTransactions([]);
+        loadPortfolioData();
+        loadProfile();
     }, []);
 
     const loadProfile = async () => {
         try {
             const user = auth.currentUser;
             if (user) {
-                const profilRef = collection(db, "profil");
-                const requette = query(profilRef, where("id", "==", user.uid));
-                const resultat = await getDocs(requette);
-
-                resultat.forEach((doc) => {
-                    const data = doc.data();
+                const profilRef = doc(db, "profil", user.uid);
+                const resultat = await getDoc(profilRef);
+    
+                if (resultat.exists()) {
+                    const data = resultat.data();
+                    console.log("Profil :", data);
+    
                     setProfil({
-                        id: data.id,
-                        email: data.email,
+                        id: resultat.id,
+                        nom: data.nom,
                         fondActuel: data.fondActuel,
-                    })
-                })
+                    });
+                } else {
+                    console.log("Aucun profil trouvé !");
+                }
             }
         } catch (error) {
-            Toast({})
-            console.error('Error loading profil:', error);
+            console.error("Error loading profil:", error);
         }
-    }
+    };
 
     const loadPortfolioData = async () => {
         try {
-            // Pour Firestore, vous pouvez décommenter et adapter ce bloc :
-
             const user = auth.currentUser;
             if (user) {
-                const transactionsRef = collection(db, "historique_transaction_crypto");
-                const q = query(transactionsRef, where("profil.id", "==", user.uid));
+                const transactionsRef = collection(db, "transactions_crypto");
+                const q = query(
+                    transactionsRef,
+                    where("profil", "==", user.uid),
+                    orderBy("dateAction", "desc")
+                );
                 const querySnapshot = await getDocs(q);
                 const transactionsList: Transaction[] = [];
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
+                    
                     transactionsList.push({
                         id: doc.id,
-                        dateAction: data.date_action.toDate().toISOString(),
+                        dateAction: data.dateAction,
                         cours: data.cours,
                         quantite: data.quantite,
                         profil: data.profil,
                         crypto: data.crypto,
-                        transaction: {
-                            id: data.id,
-                            designation: data.designation
-                        },
+                        typeTransaction: data.typeTransaction,
                     });
                 });
                 setTransactions(transactionsList);
                 calculatePortfolio(transactionsList);
             }
         } catch (error) {
-            Toast({})
-            console.error('Error loading portfolio:', error);
+            console.error("An error occurred while loading portfolio:", error);
         }
     };
 
@@ -172,16 +107,15 @@ export default function PortfolioScreen() {
         const portfolioMap = new Map<string, PortfolioItem>();
 
         transactions.forEach((transaction) => {
-            const cryptoId = transaction.crypto.id;
-            const type = transaction.transaction.designation.toLowerCase(); // 'achat' ou 'vente'
+            const cryptoId = transaction.crypto;
+            const type = transaction.typeTransaction.toLowerCase(); // 'achat' ou 'vente'
             const quantite = transaction.quantite;
-            const cours = transaction.cours;
 
             let item = portfolioMap.get(cryptoId);
             if (!item) {
                 item = {
                     cryptoId,
-                    symbol: transaction.crypto.designation,
+                    symbol: transaction.crypto,
                     quantite: 0
                 };
             }
@@ -203,6 +137,7 @@ export default function PortfolioScreen() {
     const onRefresh = async () => {
         setRefreshing(true);
         await loadPortfolioData();
+        await loadProfile();
         setRefreshing(false);
     };
 
@@ -215,7 +150,7 @@ export default function PortfolioScreen() {
                 <Text className="mb-2 text-base font-medium text-indigo-200">Mon Portefeuille</Text>
                 <View className="mb-6">
                     <Text className="text-5xl font-bold text-white">
-                        {formatCurrency(profil.fondActuel)}
+                        {formatCurrency(profil?.fondActuel ?? 0)}
                     </Text>
                 </View>
 
@@ -273,7 +208,7 @@ export default function PortfolioScreen() {
                     <Text className="mb-4 text-xl font-semibold text-gray-800">Transactions récentes</Text>
                     <View className="overflow-hidden bg-white shadow-sm rounded-3xl">
                         {transactions.map((item, index) => {
-                            const type = item.transaction.designation.toLowerCase() === 'achat';
+                            const type = item.typeTransaction.toLowerCase() === 'achat';
                             return (
                                 <View
                                     key={index}
@@ -292,7 +227,7 @@ export default function PortfolioScreen() {
                                             </View>
                                             <View>
                                                 <Text className="text-lg font-semibold text-gray-800">
-                                                    {type ? 'Achat' : 'Vente'} {item.crypto.designation}
+                                                    {type ? 'Achat' : 'Vente'} {item.crypto}
                                                 </Text>
                                                 <Text className="text-sm text-gray-500">
                                                     {new Date(item.dateAction).toLocaleDateString('fr-FR', {

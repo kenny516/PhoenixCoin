@@ -1,6 +1,6 @@
 export type Profil = {
     id: string;
-    email: string;
+    nom: string;
     fondActuel: number;
 }
 
@@ -46,9 +46,9 @@ export type Transaction = {
     dateAction: string;
     cours: number;
     quantite: number;
-    profil: Profil;
-    crypto: Crypto;
-    transaction: TypeTransaction;
+    profil: string;
+    crypto: string;
+    typeTransaction: string;
 }
 
 export type Portefeuille = {
