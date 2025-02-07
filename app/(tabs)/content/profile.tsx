@@ -15,9 +15,11 @@ export default function ProfileScreen() {
     const [loading, setLoading] = useState(true);
     const [updating, setUpdating] = useState(false);  // nouvel état pour le chargement
     const [userInfo, setUserInfo] = useState({
-        pseudo: "",
+        nom: "",
+        prenom: "",
         email: "",
-        dateNaissance: "",
+        pdp: "",
+        date_naissance: "",
     });
 
     useEffect(() => {
@@ -34,11 +36,13 @@ export default function ProfileScreen() {
                 if (docSnap.exists()) {
                     const data = docSnap.data();
                     setUserInfo({
-                        pseudo: data.username || '',
+                        nom: data.nom || '',
+                        prenom: data.prenom || '',
                         email: user.email || '',
-                        dateNaissance: data.dateNaissance || '',
+                        pdp: data.pdp || '',
+                        date_naissance: data.date_naissance || '',
                     });
-                    setImage(data.avatarUrl);
+                    setImage(data.pdp);
                 }
             }
         } catch (error) {
@@ -56,12 +60,11 @@ export default function ProfileScreen() {
             if (!user) throw new Error('No user');
             const imageService = new ImageKitService();
             console.log('Uploading image...');
-            const imageUrl = await imageService.uploadImage(imageUri, "test");
-            console.log('Profile updated:' + imageUrl.url);
+            const imageUrl = await imageService.uploadImage(imageUri, userInfo.email);
             const userRef = doc(db, "profil", user.uid);
 
             await updateDoc(userRef, {
-                avatarUrl: imageUrl.url,
+                pdp: imageUrl.url,
                 updatedAt: new Date()
             });
             setImage(imageUrl.url);
@@ -142,16 +145,13 @@ export default function ProfileScreen() {
         }}>
             <ScrollView className="flex-1">
                 {/* En-tête avec dégradé */}
-                <LinearGradient
-                    colors={['#3B82F6', '#2563EB']}
-                    className="px-4 pt-6 pb-20"
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
+                <View
+                    className="px-4 pt-6 pb-20 bg-primary-600"
                 >
                     <View className="flex-row items-center space-x-3">
                         <Text className="text-2xl font-bold text-background-light">Profil</Text>
                     </View>
-                </LinearGradient>
+                </View>
 
                 <View className="px-4 -mt-16">
                     {/* Photo de profil avec actions */}
@@ -247,9 +247,10 @@ export default function ProfileScreen() {
                         </View>
 
                         <View className="space-y-0.5 divide-y divide-secondary-100">
-                            <InfoRow label="Pseudo" value={userInfo.pseudo} icon="at-sign" />
+                            <InfoRow label="nom" value={userInfo.nom} icon="at-sign" />
+                            <InfoRow label="prenom" value={userInfo.prenom} icon="at-sign" />
                             <InfoRow label="Email" value={userInfo.email} icon="mail" />
-                            <InfoRow label="Date de naissance" value={userInfo.dateNaissance} icon="calendar" />
+                            <InfoRow label="Date de naissance" value={userInfo.date_naissance} icon="calendar" />
                         </View>
                         {/* Bouton de déconnexion */}
                         <TouchableOpacity
