@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ActivityIndicator, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
@@ -148,34 +148,42 @@ export default function MarketScreen() {
 
     const renderCryptoItem = ({ item }: { item: Crypto }) => (
         <TouchableOpacity
-            className="flex-row items-center justify-between p-6 mb-2 bg-white border-gray-600 border-hairline rounded-xl"
+            className="flex-row items-center justify-between p-3 mb-2 bg-white border-gray-600 border-hairline rounded-xl"
+            style={{
+                paddingVertical: Dimensions.get('window').height * 0.015,
+                paddingHorizontal: Dimensions.get('window').width * 0.03
+            }}
             onPress={() => {
                 showGraphOfCryptoSelected(item);
             }}>
 
             <View className="flex-row items-center">
-                <View className="items-center justify-center w-10 h-10 mr-3 bg-blue-100 rounded-full">
-                    <Text className="text-lg font-bold text-blue-600">{item.designation[0].toUpperCase()}</Text>
+                <View style={{
+                    width: Dimensions.get('window').width * 0.1,
+                    height: Dimensions.get('window').width * 0.1,
+                    marginRight: Dimensions.get('window').width * 0.02
+                }} className="items-center justify-center bg-blue-100 rounded-full">
+                    <Text style={{
+                        fontSize: Dimensions.get('window').width * 0.04
+                    }} className="font-bold text-blue-600">{item.designation[0].toUpperCase()}</Text>
                 </View>
-                <Text className="ml-2 text-gray-500">{item.designation}</Text>
+                <Text style={{
+                    fontSize: Dimensions.get('window').width * 0.035
+                }} className="text-gray-500">{item.designation}</Text>
             </View>
-
-            {/*            <View className="flex-row items-center">
-                <TouchableOpacity onPress={() => toggleFavorite(item)}>
-                    <Fontisto
-                        name="favorite"
-                        size={28}
-                        color={item.isFavorite ? "#F59E0B" : "#dddddd"}
-                    />
-                </TouchableOpacity>
-            </View> */}
         </TouchableOpacity>
     );
 
     return (
         <SafeAreaView className="flex-1 h-full bg-gray-50">
-            <View className="p-4 bg-primary-600">
-                <Text className="text-2xl font-bold text-white">Marché</Text>
+            <View style={{
+                padding: Dimensions.get('window').width * 0.03,
+                marginBottom: Dimensions.get('window').height * 0.01
+            }} className="bg-primary-600">
+                <Text style={{
+                    fontSize: Dimensions.get('window').width * 0.05,
+                    color: '#ffffff'
+                }} className="font-bold">Marché</Text>
             </View>
             {isLoading ? (
                 <View className="items-center justify-center flex-1">
@@ -183,18 +191,39 @@ export default function MarketScreen() {
                     <Text className="mt-2">Chargement des données...</Text>
                 </View>
             ) : (
-                <View className='justify-start w-full h-full p-2 gap-8 flex-[2]'>
-                    <View className='w-full p-4 bg-slate-200 rounded-xl h-2/5'>
-                        <ScrollView>
+                <View style={{
+                    flex: 1,
+                    gap: Dimensions.get('window').height * 0.02,
+                    padding: Dimensions.get('window').width * 0.03
+                }}>
+                    <View style={{
+                        height: Math.min(Dimensions.get('window').height * 0.4, 300),
+                        padding: Dimensions.get('window').width * 0.02,
+                        backgroundColor: '#f1f5f9',
+                        borderRadius: 12
+                    }}>
+                        <ScrollView showsVerticalScrollIndicator={false}>
                             <BitcoinEvolutionChart
                                 data={graphContent}
                                 title={selectedCrypto?.designation}
                             />
                         </ScrollView>
-
                     </View>
-                    <View className='items-center w-full h-auto p-4 rounded-lg border-hairline'>
-                        <Text className='pb-2 text-xl font-bold '>Cryptomonnaies sur le marché</Text>
+                    <View style={{
+                        flex: 1,
+                        padding: Dimensions.get('window').width * 0.02,
+                        borderRadius: 8,
+                        borderWidth: 1,
+                        borderColor: '#e5e7eb'
+                    }}>
+                        <Text style={{
+                            fontSize: Dimensions.get('window').width * 0.045,
+                            marginBottom: Dimensions.get('window').height * 0.01,
+                            textAlign: 'center',
+                            fontWeight: 'bold'
+                        }}>
+                            Cryptomonnaies sur le marché
+                        </Text>
                         <FlatList
                             data={cryptos}
                             renderItem={renderCryptoItem}
@@ -202,11 +231,11 @@ export default function MarketScreen() {
                             refreshControl={
                                 <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
                             }
-                            contentContainerStyle={{ paddingBottom: 16 }} // Espace supplémentaire en bas
-                            className="w-full py-4 -mb-4 border-t-hairline"
+                            contentContainerStyle={{
+                                paddingBottom: Dimensions.get('window').height * 0.02
+                            }}
                             showsVerticalScrollIndicator={false}
                         />
-
                     </View>
                 </View>
             )}

@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert, ScrollView } from 'reac
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '@/firebase/firebaseConfig';
 import { collection, getDocs, query } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
@@ -79,68 +80,101 @@ export default function DepotRetraitScreen() {
     };
 
     return (
-        <SafeAreaView className="flex-1 h-full bg-gray-50">
-            <LinearGradient colors={['#2563EB', '#3B82F6']} className="p-4">
-                <Text className="text-2xl font-bold text-white">
-                    Transaction
-                </Text>
-            </LinearGradient>
-
-            <View className="flex-1 w-full h-full p-4">
-                <View className="flex-col p-4 gap-7 h-3/5 rounded-xl">
-                    {/* Sélection du type d'action */}
-                    <View>
-                        <Text className="mb-1 text-sm font-medium text-gray-700">Type d'Action</Text>
-                        <View className="overflow-hidden border border-gray-200 rounded-lg">
-                            <Picker
-                                selectedValue={type}
-                                onValueChange={(itemValue) => setType(itemValue)}
-                                style={{ backgroundColor: 'white' }}
-                            >
-                                <Picker.Item label="Sélectionner un type" value="" />
-                                {typeActions.map((action) => (
-                                    <Picker.Item key={action.id} label={action.designation} value={action.id} />
-                                ))}
-                            </Picker>
-                        </View>
-                    </View>
-
-                    {/* Saisie du montant */}
-                    <View>
-                        <Text className="mb-1 text-sm font-medium text-gray-700">Montant (€)</Text>
-                        <TextInput
-                            value={amount}
-                            onChangeText={setAmount}
-                            keyboardType="numeric"
-                            placeholder="0.00"
-                            className="p-3 bg-white border border-gray-200 rounded-lg"
-                        />
-                    </View>
-
-                    {/* Saisie du numéro de carte */}
-                    <View>
-                        <Text className="mb-1 text-sm font-medium text-gray-700">Numéro de carte</Text>
-                        <TextInput
-                            value={cardNumber}
-                            onChangeText={setCardNumber}
-                            keyboardType="numeric"
-                            placeholder="1234 5678 9012 3456"
-                            maxLength={19}
-                            className="p-3 bg-white border border-gray-200 rounded-lg"
-                        />
-                    </View>
-
-                    {/* Bouton de confirmation */}
-                    <TouchableOpacity
-                        onPress={handleSubmit}
-                        className={`p-4 rounded-xl ${type === 'depot' ? 'bg-accent-500' : 'bg-primary-500'}`}
-                    >
-                        <Text className="text-lg font-bold text-center text-white">
-                            {type === 'depot' ? 'Confirmer le dépôt' : 'Confirmer le retrait'}
-                        </Text>
-                    </TouchableOpacity>
+        <SafeAreaView className="flex-1 bg-gray-100">
+            {/* Header */}
+            <View
+                className="w-full p-6 pt-8 bg-primary-600"
+            >
+                <View className="flex-row items-center justify-between">
+                    <Text className="text-2xl font-bold text-white">
+                        Transactions
+                    </Text>
+                    <Ionicons name="wallet-outline" size={24} color="white" />
                 </View>
             </View>
+
+            <ScrollView className="flex-1 px-4">
+                {/* Card principale */}
+                <View className="mt-4 overflow-hidden bg-white shadow-sm rounded-3xl">
+                    <View className="p-5">
+                        {/* Type d'action */}
+                        <View className="mb-6">
+                            <Text className="mb-2 text-base font-semibold text-gray-700">
+                                Type d'Action
+                            </Text>
+                            <View className="overflow-hidden border border-gray-200 rounded-xl bg-gray-50">
+                                <Picker
+                                    selectedValue={type}
+                                    onValueChange={setType}
+                                    style={{ height: 50 }}
+                                >
+                                    <Picker.Item label="Sélectionner un type" value="" />
+                                    {typeActions.map((action) => (
+                                        <Picker.Item
+                                            key={action.id}
+                                            label={action.designation}
+                                            value={action.id}
+                                        />
+                                    ))}
+                                </Picker>
+                            </View>
+                        </View>
+
+                        {/* Montant */}
+                        <View className="mb-6">
+                            <Text className="mb-2 text-base font-semibold text-gray-700">
+                                Montant (€)
+                            </Text>
+                            <View className="flex-row items-center px-4 border border-gray-200 rounded-xl bg-gray-50">
+                                <Ionicons name="cash-outline" size={20} color="#6B7280" />
+                                <TextInput
+                                    value={amount}
+                                    onChangeText={setAmount}
+                                    keyboardType="numeric"
+                                    placeholder="0.00"
+                                    className="flex-1 p-3 ml-2 text-gray-700"
+                                />
+                            </View>
+                        </View>
+
+                        {/* Numéro de carte */}
+                        <View className="mb-6">
+                            <Text className="mb-2 text-base font-semibold text-gray-700">
+                                Numéro de carte
+                            </Text>
+                            <View className="flex-row items-center px-4 border border-gray-200 rounded-xl bg-gray-50">
+                                <Ionicons name="card-outline" size={20} color="#6B7280" />
+                                <TextInput
+                                    value={cardNumber}
+                                    onChangeText={setCardNumber}
+                                    keyboardType="numeric"
+                                    placeholder="1234 5678 9012 3456"
+                                    maxLength={19}
+                                    className="flex-1 p-3 ml-2 text-gray-700"
+                                />
+                            </View>
+                        </View>
+
+                        {/* Bouton de confirmation */}
+                        <TouchableOpacity
+                            onPress={handleSubmit}
+                            className='py-4 rounded-xl bg-primary-600'
+
+                        >
+                            <View className="flex-row items-center justify-center space-x-2">
+                                <MaterialCommunityIcons
+                                    name="bank-transfer"
+                                    size={30}
+                                    color="white"
+                                />
+                                <Text className="text-base font-semibold text-white">
+                                    Confirmer la transaction
+                                </Text>
+                            </View>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }
