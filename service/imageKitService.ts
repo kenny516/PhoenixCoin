@@ -16,15 +16,20 @@ export class ImageKitService {
 
     public async uploadImage(imageUri: string, fileName: string) {
         try {
-            // Obtenir l'authentification localement
-            const authParams = await imagekitAuth.getAuthenticationParameters();
+            // Lancer en parallèle l'obtention des paramètres d'authentification
+            // et la lecture du fichier en base64
+            const [authParams, base64Data] = await Promise.all([
+                imagekitAuth.getAuthenticationParameters(),
+                FileSystem.readAsStringAsync(imageUri, {
+                    encoding: FileSystem.EncodingType.Base64,
+                }),
+            ]);
 
-
-            let file = await fetch(imageUri);
-            let blob = await file.blob();
+            // Construire le Data URL en précisant le type MIME (ici image/jpeg)
+            const fileBase64 = `data:image/jpeg;base64,${base64Data}`;
 
             const uploadOptions = {
-                file: blob,
+                file: fileBase64,
                 fileName,
                 signature: authParams.signature,
                 token: authParams.token,
@@ -33,8 +38,9 @@ export class ImageKitService {
                 tags: ["react-native"],
                 folder: "/uploads"
             };
+
             const result = await this.imagekit.upload(uploadOptions);
-            // Enregistrer le résultat dans Firestore si nécessaire
+
             return {
                 url: result.url,
                 thumbnailUrl: result.thumbnailUrl,

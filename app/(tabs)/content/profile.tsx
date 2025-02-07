@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Image, Platform, SafeAreaView, StatusBar, Alert, ScrollView, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Platform, SafeAreaView, StatusBar, Alert, ScrollView, TextInput, ActivityIndicator } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,6 +13,7 @@ import Toast from "react-native-toast-message";
 export default function ProfileScreen() {
     const [image, setImage] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    const [updating, setUpdating] = useState(false);  // nouvel état pour le chargement
     const [userInfo, setUserInfo] = useState({
         pseudo: "",
         email: "",
@@ -49,6 +50,7 @@ export default function ProfileScreen() {
     };
 
     const updateProfile = async (imageUri: string) => {
+        setUpdating(true);
         try {
             const user = auth.currentUser;
             if (!user) throw new Error('No user');
@@ -56,10 +58,10 @@ export default function ProfileScreen() {
             console.log('Uploading image...');
             const imageUrl = await imageService.uploadImage(imageUri, "test");
             console.log('Profile updated:' + imageUrl.url);
-            const userRef = doc(db, "profiles", user.uid);
+            const userRef = doc(db, "profil", user.uid);
 
             await updateDoc(userRef, {
-                avatarUrl: imageUrl,
+                avatarUrl: imageUrl.url,
                 updatedAt: new Date()
             });
             setImage(imageUrl.url);
@@ -74,7 +76,8 @@ export default function ProfileScreen() {
                 text1: "Erreur de connection",
                 text2: "Veuillez verifier votre connection internet 🛜",
             });
-            Alert.alert('Erreur', 'Impossible de mettre à jour le profil');
+        } finally {
+            setUpdating(false);
         }
     };
 
@@ -85,7 +88,6 @@ export default function ProfileScreen() {
             aspect: [1, 1],
             quality: 1,
         });
-
         if (!result.canceled) {
             setImage(result.assets[0].uri);
             await updateProfile(result.assets[0].uri);
@@ -98,13 +100,11 @@ export default function ProfileScreen() {
             alert('Désolé, nous avons besoin des permissions pour accéder à votre caméra!');
             return;
         }
-
         const result = await ImagePicker.launchCameraAsync({
             allowsEditing: true,
             aspect: [1, 1],
             quality: 1,
         });
-
         if (!result.canceled) {
             setImage(result.assets[0].uri);
             await updateProfile(result.assets[0].uri);
@@ -159,7 +159,11 @@ export default function ProfileScreen() {
                         <View className="items-center">
                             <View className="relative mb-6">
                                 <View className="w-32 h-32 overflow-hidden rounded-full shadow-xl">
-                                    {image ? (
+                                    {updating ? (
+                                        <View className="items-center justify-center w-full h-full bg-gray-100">
+                                            <ActivityIndicator size="large" color="#3B82F6" />
+                                        </View>
+                                    ) : image ? (
                                         <Image
                                             source={{ uri: image }}
                                             className="w-full h-full"
@@ -208,7 +212,8 @@ export default function ProfileScreen() {
 
                             <TouchableOpacity
                                 onPress={pickImage}
-                                className="flex-row items-center justify-center w-full gap-2 p-6 px-6 py-4 space-x-3 bg-primary-500 rounded-xl"
+                                disabled={updating}
+                                className={`flex-row items-center justify-center w-full gap-2 p-6 px-6 py-4 space-x-3 rounded-xl ${updating ? 'bg-gray-400' : 'bg-primary-500'}`}
                                 style={{
                                     shadowColor: '#3B82F6',
                                     shadowOffset: { width: 0, height: 4 },
@@ -216,10 +221,16 @@ export default function ProfileScreen() {
                                     shadowRadius: 6,
                                     elevation: 4
                                 }}>
-                                <Feather name="image" size={20} color="#fff" />
-                                <Text className="text-base font-bold text-white">
-                                    Choisir depuis la galerie
-                                </Text>
+                                {updating ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <>
+                                        <Feather name="image" size={20} color="#fff" />
+                                        <Text className="text-base font-bold text-white">
+                                            Choisir depuis la galerie
+                                        </Text>
+                                    </>
+                                )}
                             </TouchableOpacity>
                         </View>
                     </View>
