@@ -127,8 +127,8 @@ export default function ProfileScreen() {
         <View className="flex-row items-center justify-between py-3 border-b border-secondary-100">
             <View className="flex-row items-center gap-2 space-x-3">
                 {icon && (
-                    <View className="p-1.5 rounded-lg bg-primary-50">
-                        <Feather name={icon} size={18} className="text-primary-500" />
+                    <View className="p-2 rounded-lg shadow-sm bg-primary-100">
+                        <Feather name={icon} size={20} color="#3B82F6" style={{ opacity: 0.9 }} />
                     </View>
                 )}
                 <Text className="text-sm text-text-muted">{label}</Text>
@@ -238,19 +238,32 @@ export default function ProfileScreen() {
                     {/* Informations personnelles */}
                     <View className="p-5 shadow-xl bg-background-light rounded-2xl">
                         <View className="flex-row items-center gap-2 mb-5 space-x-3">
-                            <View className="p-2 rounded-xl bg-primary-50">
-                                <Feather name="user" size={22} className="text-primary-500" />
-                            </View>
                             <Text className="text-lg font-bold text-text-light">
                                 Informations personnelles
                             </Text>
                         </View>
 
-                        <View className="space-y-0.5 divide-y divide-secondary-100">
-                            <InfoRow label="nom" value={userInfo.nom} icon="at-sign" />
-                            <InfoRow label="prenom" value={userInfo.prenom} icon="at-sign" />
-                            <InfoRow label="Email" value={userInfo.email} icon="mail" />
-                            <InfoRow label="Date de naissance" value={userInfo.date_naissance} icon="calendar" />
+                        <View className="space-y-1 divide-y divide-secondary-100">
+                            <InfoRow
+                                label="Nom"
+                                value={userInfo.nom || 'Non renseigné'}
+                                icon="user"
+                            />
+                            <InfoRow
+                                label="Prénom"
+                                value={userInfo.prenom || 'Non renseigné'}
+                                icon="user"
+                            />
+                            <InfoRow
+                                label="Email"
+                                value={userInfo.email || 'Non renseigné'}
+                                icon="mail"
+                            />
+                            <InfoRow
+                                label="Date de naissance"
+                                value={userInfo.date_naissance || 'Non renseignée'}
+                                icon="calendar"
+                            />
                         </View>
                         {/* Bouton de déconnexion */}
                         <TouchableOpacity
