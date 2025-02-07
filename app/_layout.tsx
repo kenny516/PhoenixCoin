@@ -22,7 +22,6 @@ Notifications.setNotificationHandler({
 });
 
 
-
 async function registerForPushNotificationsAsync() {
     let token;
 
