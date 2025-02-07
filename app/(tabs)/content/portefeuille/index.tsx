@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, RefreshControl, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, RefreshControl, ScrollView, TextInput, Animated, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { MotiView } from 'moti';
+import { Skeleton } from 'moti/skeleton';
+import { BlurView } from 'expo-blur';
 import { collection, query, where, getDocs, doc, orderBy, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
 import {
@@ -36,6 +39,8 @@ export default function PortfolioScreen() {
     const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
     const [refreshing, setRefreshing] = useState(false);
     const [isloading, setIsLoading] = useState(true)
+    const scrollY = new Animated.Value(0);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         calculatePortfolio([]);
@@ -50,11 +55,11 @@ export default function PortfolioScreen() {
             if (user) {
                 const profilRef = doc(db, "profil", user.uid);
                 const resultat = await getDoc(profilRef);
-    
+
                 if (resultat.exists()) {
                     const data = resultat.data();
                     console.log("Profil :", data);
-    
+
                     setProfil({
                         id: resultat.id,
                         nom: data.nom,
@@ -83,7 +88,7 @@ export default function PortfolioScreen() {
                 const transactionsList: Transaction[] = [];
                 querySnapshot.forEach((doc) => {
                     const data = doc.data();
-                    
+
                     transactionsList.push({
                         id: doc.id,
                         dateAction: data.dateAction,
@@ -141,119 +146,174 @@ export default function PortfolioScreen() {
         setRefreshing(false);
     };
 
+    // Animation du header
+    const headerHeight = scrollY.interpolate({
+        inputRange: [0, 100],
+        outputRange: [220, 150],
+        extrapolate: 'clamp'
+    });
+
+    const headerOpacity = scrollY.interpolate({
+        inputRange: [0, 100],
+        outputRange: [1, 0.98],
+        extrapolate: 'clamp'
+    });
+
     return (
-        <SafeAreaView className="flex-1 bg-gray-50">
-            {/* En-tête avec gradient et balance */}
-            <View
-                className="px-6 pt-8 pb-12 rounded-b-[32px] shadow-lg bg-primary-600"
+        <SafeAreaView className="flex-1">
+            <Animated.View
+                style={{
+                    height: headerHeight,
+                    opacity: headerOpacity
+                }}
+                className="relative"
             >
-                <Text className="mb-2 text-base font-medium text-indigo-200">Mon Portefeuille</Text>
-                <View className="mb-6">
-                    <Text className="text-5xl font-bold text-white">
-                        {formatCurrency(profil?.fondActuel ?? 0)}
-                    </Text>
-                </View>
+                <LinearGradient
+                    colors={['#2563EB', '#1D4ED8']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    className="absolute w-full h-full"
+                />
 
-                {/* Mini résumé du portfolio */}
-                <View className="flex-row justify-around">
-                    <View className="items-center w-2/5 px-4 py-3 bg-white/10 rounded-2xl">
-                        <Text className="text-xs text-indigo-200">Cryptos</Text>
-                        <Text className="text-xl font-bold text-white">{portfolio.length}</Text>
-                    </View>
-                    <View className="items-center w-2/5 px-4 py-3 bg-white/10 rounded-2xl">
-                        <Text className="text-xs text-indigo-200">Transactions</Text>
-                        <Text className="text-xl font-bold text-white">{transactions.length}</Text>
+
+                <View className="px-6 pt-4">
+                    <MotiView
+                        from={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ type: 'timing', duration: 500 }}
+                    >
+                        <Text className="mb-2 text-sm font-medium text-primary-200">Balance totale</Text>
+                        <Text className="mb-4 text-4xl font-bold text-white">
+                            {formatCurrency(profil?.fondActuel ?? 0)}
+                        </Text>
+                    </MotiView>
+
+                    <View className="flex-row p-4 space-x-4 gap-7">
+                        <MotiView
+                            from={{ opacity: 0, translateY: 20 }}
+                            animate={{ opacity: 1, translateY: 0 }}
+                            transition={{ delay: 200 }}
+                            className="flex-1 p-4 bg-white/10 rounded-2xl "
+                        >
+                            <FontAwesome5 name="coins" size={20} color="#93C5FD" />
+                            <Text className="mt-2 text-xs text-primary-200">Cryptos</Text>
+                            <Text className="text-2xl font-bold text-white">{portfolio.length}</Text>
+                        </MotiView>
+                        <MotiView
+                            from={{ opacity: 0, translateY: 20 }}
+                            animate={{ opacity: 1, translateY: 0 }}
+                            transition={{ delay: 400 }}
+                            className="flex-1 p-4 bg-white/10 rounded-2xl"
+                        >
+                            <FontAwesome5 name="exchange-alt" size={20} color="#93C5FD" />
+                            <Text className="mt-2 text-xs text-primary-200">Transactions</Text>
+                            <Text className="text-2xl font-bold text-white">{transactions.length}</Text>
+                        </MotiView>
                     </View>
                 </View>
-            </View>
+            </Animated.View>
 
-            <ScrollView
-                className="flex-1 px-4"
+
+            <Animated.ScrollView
+                className="flex-1"
+                onScroll={Animated.event(
+                    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+                    { useNativeDriver: false }
+                )}
                 refreshControl={
-                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor="#2563EB"
+                    />
                 }
             >
                 {/* Section des actifs */}
-                <View className="mt-6">
-                    <Text className="mb-4 text-xl font-semibold text-gray-800">Mes actifs</Text>
-                    <View className="p-4 bg-white shadow-sm rounded-3xl">
-                        {portfolio.map((item, index) => (
-                            <TouchableOpacity
+                <View className="p-4">
+                    <Text className="mb-4 text-xl font-bold text-primary-900">Mes actifs</Text>
+                    {portfolio
+                        .filter(item => item.symbol.toLowerCase().includes(searchQuery.toLowerCase()))
+                        .map((item, index) => (
+                            <MotiView
                                 key={index}
-                                className={`flex-row items-center justify-between py-4 ${index !== portfolio.length - 1 ? 'border-b border-gray-100' : ''
-                                    }`}
-                                activeOpacity={0.7}
+                                from={{ opacity: 0, scale: 0.9 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ delay: index * 100 }}
+                                className="p-4 mb-3 bg-white shadow-sm rounded-2xl"
                             >
-                                <View className="flex-row items-center flex-1">
-                                    <View className="items-center justify-center w-12 h-12 mr-4 bg-indigo-100 rounded-full">
-                                        <Text className="text-lg font-bold text-indigo-600">{item.symbol[0]}</Text>
+                                <TouchableOpacity className="flex-row items-center justify-between">
+                                    <View className="flex-row items-center flex-1">
+                                        <View className="items-center justify-center w-12 h-12 mr-4 rounded-full bg-primary-100">
+                                            <Text className="text-xl font-bold text-primary-600">{item.symbol[0]}</Text>
+                                        </View>
+                                        <View>
+                                            <Text className="text-lg font-semibold text-primary-900">{item.symbol}</Text>
+                                        </View>
                                     </View>
-                                    <View>
-                                        <Text className="text-lg font-semibold text-gray-800">{item.symbol}</Text>
-                                        <Text className="text-sm text-gray-500">Quantité détenue</Text>
+                                    <View className="p-2 bg-primary-50 rounded-xl">
+                                        <View>
+                                            <Text className="text-sm text-primary-500">
+                                                {formatCryptoAmount(item.quantite)} unités
+                                            </Text>
+                                        </View>
                                     </View>
-                                </View>
-                                <View className="items-end">
-                                    <Text className="text-lg font-semibold text-gray-800">
-                                        {formatCryptoAmount(item.quantite)}
-                                    </Text>
-                                </View>
-                            </TouchableOpacity>
+                                </TouchableOpacity>
+                            </MotiView>
                         ))}
-                    </View>
                 </View>
 
                 {/* Section des transactions */}
-                <View className="my-6">
-                    <Text className="mb-4 text-xl font-semibold text-gray-800">Transactions récentes</Text>
-                    <View className="overflow-hidden bg-white shadow-sm rounded-3xl">
-                        {transactions.map((item, index) => {
-                            const type = item.typeTransaction.toLowerCase() === 'achat';
-                            return (
-                                <View
-                                    key={index}
-                                    className={`p-4 ${index !== transactions.length - 1 ? 'border-b border-gray-100' : ''
-                                        }`}
-                                >
-                                    <View className="flex-row items-center justify-between">
-                                        <View className="flex-row items-center">
-                                            <View className={`w-12 h-12 rounded-full items-center justify-center mr-4 ${type ? 'bg-green-100' : 'bg-red-100'
-                                                }`}>
-                                                <MaterialIcons
-                                                    name={type ? 'call-received' : 'call-made'}
-                                                    size={24}
-                                                    color={type ? '#059669' : '#DC2626'}
-                                                />
-                                            </View>
-                                            <View>
-                                                <Text className="text-lg font-semibold text-gray-800">
-                                                    {type ? 'Achat' : 'Vente'} {item.crypto}
-                                                </Text>
-                                                <Text className="text-sm text-gray-500">
-                                                    {new Date(item.dateAction).toLocaleDateString('fr-FR', {
-                                                        day: '2-digit',
-                                                        month: 'short',
-                                                        hour: '2-digit', minute: '2-digit'
-                                                    })}
-                                                </Text>
-                                            </View>
+                <View className="p-4">
+                    <Text className="mb-4 text-xl font-bold text-primary-900">Transactions récentes</Text>
+                    {transactions.map((item, index) => {
+                        const isAchat = item.typeTransaction.toLowerCase() === 'achat';
+                        return (
+                            <MotiView
+                                key={index}
+                                from={{ opacity: 0, translateX: -20 }}
+                                animate={{ opacity: 1, translateX: 0 }}
+                                transition={{ delay: index * 50 }}
+                                className="p-4 mb-3 bg-white shadow-sm rounded-2xl"
+                            >
+                                <View className="flex-row items-center justify-between">
+                                    <View className="flex-row items-center">
+                                        <View className={`w-10 h-10 rounded-full items-center justify-center mr-3 ${isAchat ? 'bg-green-100' : 'bg-red-100'
+                                            }`}>
+                                            <MaterialIcons
+                                                name={isAchat ? 'arrow-downward' : 'arrow-upward'}
+                                                size={20}
+                                                color={isAchat ? '#059669' : '#DC2626'}
+                                            />
                                         </View>
-                                        <View className="items-end">
-                                            <Text className={`text-lg font-semibold ${type ? 'text-green-600' : 'text-red-600'
-                                                }`}>
-                                                {type ? '+' : '-'}{formatCryptoAmount(item.quantite)}
+                                        <View>
+                                            <Text className="text-base font-semibold text-primary-900">
+                                                {isAchat ? 'Achat' : 'Vente'} {item.crypto}
                                             </Text>
-                                            <Text className="text-sm text-gray-500">
-                                                {formatCurrency(item.cours * item.quantite)}
+                                            <Text className="text-sm text-primary-500">
+                                                {new Date(item.dateAction).toLocaleDateString('fr-FR', {
+                                                    day: '2-digit',
+                                                    month: 'short',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
                                             </Text>
                                         </View>
                                     </View>
+                                    <View className="items-end">
+                                        <Text className={`text-base font-semibold ${isAchat ? 'text-green-600' : 'text-red-600'
+                                            }`}>
+                                            {isAchat ? '+' : '-'}{formatCryptoAmount(item.quantite)}
+                                        </Text>
+                                        <Text className="text-sm text-primary-500">
+                                            {formatCurrency(item.cours * item.quantite)}
+                                        </Text>
+                                    </View>
                                 </View>
-                            );
-                        })}
-                    </View>
+                            </MotiView>
+                        );
+                    })}
                 </View>
-            </ScrollView>
+            </Animated.ScrollView>
         </SafeAreaView>
     );
 }

@@ -3,7 +3,6 @@ import { Link, router } from 'expo-router';
 import { Feather, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth } from '@/firebase/firebaseConfig';
 import { useEffect } from 'react';
-import { getFCMToken } from '@/utils/notifications';
 
 const { width } = Dimensions.get('window');
 

@@ -10,6 +10,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { StatusBarManager } from '@/components/StatusBarManager';
 import 'react-native-url-polyfill/auto';
 import * as Notifications from 'expo-notifications';
+import Toast from 'react-native-toast-message';
 
 
 Notifications.setNotificationHandler({
@@ -58,6 +59,7 @@ export default function RootLayout() {
                     <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
                     <Stack.Screen name="+not-found" />
                 </Stack>
+                <Toast />
             </View>
         </>
     );

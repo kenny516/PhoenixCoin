@@ -70,6 +70,7 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
         // Le conteneur principal récupère sa taille via onLayout
         <View
             style={{ flex: 1 }}
+            className='h-full'
             onLayout={({ nativeEvent }) => {
                 setContainerWidth(nativeEvent.layout.width);
                 setContainerHeight(nativeEvent.layout.height);
@@ -96,16 +97,13 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
 
             {/* Graphique */}
             <LineChart
-                data={mockChartData.map(item => ({
+                data={data.map(item => ({
                     value: item.value,
-                    label: formatDate(item.date),
-                    dataPointText: formatCurrency(item.value)
                 }))}
 
                 // Configuration du tracé
                 areaChart1
                 width={chartWidth}
-                curved
                 isAnimated
                 animationDuration={1500}
                 thickness={3} // Légèrement plus épais pour un trait plus visible
@@ -113,7 +111,7 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
 
 
                 // Valeur maximale
-                maxValue={Math.max(...mockChartData.map(item => item.value))}
+
 
                 // Couleurs et remplissage du graphique
                 color="#3b82f6"
@@ -139,7 +137,7 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
 
                 // Espacement et sections
                 spacing={60}
-                yAxisOffset={Math.min(...mockChartData.map(item => item.value))}
+                yAxisOffset={Math.min(...data.map(item => item.value))}
                 noOfSections={5}
 
                 // Règles (grid lines) et indices

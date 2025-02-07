@@ -26,7 +26,8 @@ export type CoursCrypto = {
 
 export type Crypto = {
     id: string,
-    designation: string
+    designation: string,
+    isFavorite?: boolean,
 };
 
 export type ChartDataPoint = {
