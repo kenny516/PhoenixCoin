@@ -4,29 +4,54 @@ import { Link, router } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../firebase/firebaseConfig';
+import { auth, db } from '../../firebase/firebaseConfig';
 import Toast from 'react-native-toast-message';
-
-
+import { doc, setDoc } from 'firebase/firestore';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { FirebaseError } from 'firebase/app';
 
 export default function SignUpScreen() {
     const [loading, setLoading] = useState(false);
-    const [name, setName] = useState('');
+    const [nom, setNom] = useState('');
+    const [prenom, setPrenom] = useState('');
+    const [date, setDate] = useState(new Date());
+    const [dateNaissance, setDateNaissance] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
     const [errors, setErrors] = useState({
-        name: '',
+        nom: '',
+        prenom: '',
+        date_naissance: '',
         email: '',
         password: ''
     });
 
     const validateForm = () => {
         let isValid = true;
-        const newErrors = { name: '', email: '', password: '' };
+        const newErrors = {
+            nom: '',
+            prenom: '',
+            date_naissance: '',
+            email: '',
+            password: ''
+        };
 
-        if (name.length < 3) {
-            newErrors.name = 'Le nom doit contenir au moins 3 caractères';
+        if (nom.length < 2) {
+            newErrors.nom = 'Le nom doit contenir au moins 2 caractères';
+            isValid = false;
+        }
+
+        if (prenom.length < 2) {
+            newErrors.prenom = 'Le prénom doit contenir au moins 2 caractères';
+            isValid = false;
+        }
+
+        if (!dateNaissance) {
+            newErrors.date_naissance = 'La date de naissance est requise';
             isValid = false;
         }
 
@@ -44,19 +69,74 @@ export default function SignUpScreen() {
         return isValid;
     };
 
+    const onChangeDatePicker = (event: any, selectedDate?: Date) => {
+        setShowDatePicker(Platform.OS === 'ios');
+        if (selectedDate) {
+            setDate(selectedDate);
+            setDateNaissance(format(selectedDate, 'dd/MM/yyyy', { locale: fr }));
+        }
+    };
+
+    const getFirebaseErrorMessage = (error: FirebaseError) => {
+        switch (error.code) {
+            case 'auth/email-already-in-use':
+                return 'Cette adresse email est déjà utilisée';
+            case 'auth/invalid-email':
+                return 'Adresse email invalide';
+            case 'auth/operation-not-allowed':
+                return 'Opération non autorisée';
+            case 'auth/weak-password':
+                return 'Le mot de passe est trop faible';
+            case 'auth/network-request-failed':
+                return 'Problème de connexion internet';
+            default:
+                return 'Une erreur est survenue. Veuillez réessayer.';
+        }
+    };
+
     const handleSignUp = async () => {
         if (validateForm()) {
             setLoading(true);
             try {
-                await createUserWithEmailAndPassword(auth, email, password);
+                const user = await createUserWithEmailAndPassword(auth, email, password);
+
+                try {
+                    const [day, month, year] = dateNaissance.split('/');
+                    const formattedDate = new Date(Number(year), Number(month) - 1, Number(day));
+
+                    await setDoc(doc(db, 'profil', user.user.uid), {
+                        nom,
+                        prenom,
+                        date_naissance: formattedDate.toISOString(),
+                    });
+
+                    Toast.show({
+                        type: 'success',
+                        text1: 'Compte créé avec succès',
+                        text2: 'Bienvenue sur notre plateforme',
+                        position: 'bottom',
+                        visibilityTime: 4000,
+                    });
+
+                    router.replace('/auth/sign-in');
+                } catch (firestoreError) {
+                    // Si erreur Firestore, supprimer le compte créé
+                    await user.user.delete();
+                    Toast.show({
+                        type: 'error',
+                        text1: 'Erreur',
+                        text2: 'Erreur lors de la création du profil',
+                        position: 'bottom',
+                    });
+                }
+            } catch (error) {
+                const firebaseError = error as FirebaseError;
                 Toast.show({
-                    type: 'success',
-                    text1: 'Compte créé',
-                    text2: 'Bienvenue sur notre plateforme',
+                    type: 'error',
+                    text1: 'Erreur',
+                    text2: getFirebaseErrorMessage(firebaseError),
+                    position: 'bottom',
                 });
-                router.replace('/auth/sign-in');
-            } catch (error: any) {
-                alert(error.message);
             } finally {
                 setLoading(false);
             }
@@ -82,17 +162,69 @@ export default function SignUpScreen() {
 
                     <View className="space-y-4">
                         <View>
-                            <Text className="mb-2 font-medium text-text-light">Nom complet</Text>
+                            <Text className="mb-2 font-medium text-text-light">Nom</Text>
                             <View className="flex-row items-center px-4 border border-secondary-300 rounded-xl">
                                 <Feather name="user" size={20} color="text-muted" />
                                 <TextInput
                                     className="flex-1 p-4"
-                                    placeholder="Entrez votre nom complet"
-                                    value={name}
-                                    onChangeText={setName}
+                                    placeholder="Entrez votre nom"
+                                    value={nom}
+                                    onChangeText={setNom}
                                 />
                             </View>
-                            {errors.name ? <Text className="mt-1 text-error">{errors.name}</Text> : null}
+                            {errors.nom ? <Text className="mt-1 text-error">{errors.nom}</Text> : null}
+                        </View>
+
+                        <View>
+                            <Text className="mb-2 font-medium text-text-light">Prénom</Text>
+                            <View className="flex-row items-center px-4 border border-secondary-300 rounded-xl">
+                                <Feather name="user" size={20} color="text-muted" />
+                                <TextInput
+                                    className="flex-1 p-4"
+                                    placeholder="Entrez votre prénom"
+                                    value={prenom}
+                                    onChangeText={setPrenom}
+                                />
+                            </View>
+                            {errors.prenom ? <Text className="mt-1 text-error">{errors.prenom}</Text> : null}
+                        </View>
+
+                        <View>
+                            <Text className="mb-2 font-medium text-text-light">Date de naissance</Text>
+                            <TouchableOpacity
+                                onPress={() => setShowDatePicker(true)}
+                                className="flex-row items-center px-4 border border-secondary-300 rounded-xl h-[56px]"
+                            >
+                                <Feather name="calendar" size={20} color="#6B7280" />
+                                <Text className="flex-1 p-4 text-gray-600">
+                                    {dateNaissance || "Sélectionner votre date de naissance"}
+                                </Text>
+                            </TouchableOpacity>
+                            {Platform.OS === 'android' ? (
+                                showDatePicker && (
+                                    <DateTimePicker
+                                        value={date}
+                                        mode="date"
+                                        display="default"
+                                        onChange={onChangeDatePicker}
+                                        maximumDate={new Date()}
+                                        minimumDate={new Date(1920, 0, 1)}
+                                    />
+                                )
+                            ) : (
+                                <DateTimePicker
+                                    value={date}
+                                    mode="date"
+                                    display="spinner"
+                                    onChange={onChangeDatePicker}
+                                    maximumDate={new Date()}
+                                    minimumDate={new Date(1920, 0, 1)}
+                                    style={{ display: showDatePicker ? 'flex' : 'none' }}
+                                />
+                            )}
+                            {errors.date_naissance ? (
+                                <Text className="mt-1 text-red-500">{errors.date_naissance}</Text>
+                            ) : null}
                         </View>
 
                         <View>
