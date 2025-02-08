@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '@/firebase/firebaseConfig';
-import { addDoc, collection, doc, getDoc, getDocs, query } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, query, Timestamp } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
 import { Profil, TypeAction } from '@/utils/type';
 
@@ -19,6 +19,7 @@ export default function DepotRetraitScreen() {
 
     useEffect(() => {
         loadTypeAction();
+        console.log("timestamp " + Timestamp.now());
     }, []);
 
     const loadTypeAction = async () => {
@@ -74,6 +75,7 @@ export default function DepotRetraitScreen() {
                 numerCarte: cardNumber,
                 type_operation: typeAction,
                 userId: user.uid,
+                date: Timestamp.now()
             });
 
             Toast.show({
