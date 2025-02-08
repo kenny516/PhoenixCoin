@@ -6,7 +6,7 @@ import { auth, db } from '@/firebase/firebaseConfig';
 import BitcoinEvolutionChart from '@/components/ui/BitcoinEvolutionChart';
 import { ChartDataPoint, CoursCrypto, Crypto } from '@/utils/type';
 import Toast from 'react-native-toast-message';
-import { Fontisto } from '@expo/vector-icons';
+import { EvilIcons, FontAwesome, Fontisto } from '@expo/vector-icons';
 import { Pressable } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -17,6 +17,7 @@ export default function MarketScreen() {
     const [selectedCrypto, setSelectedCrypto] = useState<Crypto>();
     const [refreshing, setRefreshing] = useState(false);
     const [loadingFavorites, setLoadingFavorites] = useState<Record<string, boolean>>({});
+    const [isGraphLoading, setIsGraphLoading] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         loadCrypto().finally(() => {
@@ -155,6 +156,7 @@ export default function MarketScreen() {
 
     // Modification du showGraphOfCryptoSelected pour une meilleure gestion des erreurs
     const showGraphOfCryptoSelected = async (crypto: Crypto) => {
+        setIsGraphLoading(prev => ({ ...prev, [crypto.id]: true }));
         try {
             setSelectedCrypto(crypto);
             console.log("Chargement du graphique pour:", crypto.designation);
@@ -172,7 +174,7 @@ export default function MarketScreen() {
                 Toast.show({
                     type: "info",
                     text1: "Information",
-                    text2: "Aucun historique de cours disponible",
+                    text2: "Aucun historique de cours disponible pour " + crypto.designation,
                 });
                 return;
             }
@@ -193,6 +195,8 @@ export default function MarketScreen() {
                 text1: "Erreur",
                 text2: "Impossible de charger le graphique veuillez réessayer",
             });
+        } finally {
+            setIsGraphLoading(prev => ({ ...prev, [crypto.id]: false }));
         }
     };
     // call tous les 10 seconde du showGraphOfCryptoSelected 
@@ -213,55 +217,59 @@ export default function MarketScreen() {
         <Animated.View
             className="mb-2"
         >
-            <Pressable
-                onPress={() => showGraphOfCryptoSelected(item)}
-                className="overflow-hidden"
-                style={({ pressed }) => ({
-                    transform: [{
-                        scale: pressed ? 0.98 : 1
-                    }],
-                    opacity: pressed ? 0.9 : 1
-                })}
-            >
-                <View className="flex-row items-center justify-between p-4 bg-white shadow-sm rounded-2xl">
-                    {/* Partie gauche avec icône et nom */}
-                    <View className="flex-row items-center flex-1">
-                        <View className="items-center justify-center w-12 h-12 mr-4 bg-primary-100 rounded-xl">
-                            <Text className="text-xl font-semibold text-primary-600">
-                                {item.designation[0].toUpperCase()}
-                            </Text>
-                        </View>
-
-                        <View className="flex-1">
-                            <Text className="text-lg font-semibold text-gray-900">
-                                {item.designation}
-                            </Text>
-                            <Text className="text-sm text-gray-500">
-                                Crypto-monnaie
-                            </Text>
-                        </View>
+            <View className="flex-row items-center justify-between p-4 bg-white shadow-sm gap-7 rounded-2xl">
+                {/* Partie gauche avec icône et nom */}
+                <View className="flex-row items-center flex-1">
+                    <View className="items-center justify-center w-12 h-12 mr-4 bg-primary-100 rounded-xl">
+                        <Text className="text-xl font-semibold text-primary-600">
+                            {item.designation[0].toUpperCase()}
+                        </Text>
                     </View>
 
-                    {/* Partie droite avec bouton favori */}
-                    <TouchableOpacity
-                        onPress={() => !loadingFavorites[item.id] && toggleFavorite(item)}
-                        disabled={loadingFavorites[item.id]}
-                        className="items-center justify-center w-10 h-10 bg-gray-50 rounded-xl"
-                    >
-                        {loadingFavorites[item.id] ? (
-                            <ActivityIndicator size="small" color="#0000ff" />
-                        ) : (
-                            <Animated.View>
-                                <Fontisto
-                                    name="favorite"
-                                    size={24}
-                                    color={item.isFavorite ? '#FFB800' : '#9CA3AF'}
-                                />
-                            </Animated.View>
-                        )}
-                    </TouchableOpacity>
+                    <View className="flex-1">
+                        <Text className="text-lg font-semibold text-gray-900">
+                            {item.designation}
+                        </Text>
+                        <Text className="text-sm text-gray-500">
+                            Crypto-monnaie
+                        </Text>
+                    </View>
                 </View>
-            </Pressable>
+
+                {/* Partie droite avec bouton favori */}
+                <TouchableOpacity
+                    onPress={() => showGraphOfCryptoSelected(item)}
+                    className="items-center justify-center w-10 h-10 bg-primary-100 rounded-xl"
+                >
+                    {isGraphLoading[item.id] ? (
+                        <ActivityIndicator size="small" color="#0000ff" />
+                    ) : (
+                        <Animated.View>
+                            <FontAwesome name="line-chart" size={24} color="#1D4ED8" />
+                        </Animated.View>
+                    )}
+                </TouchableOpacity>
+
+
+                {/* Partie droite avec bouton favori */}
+                <TouchableOpacity
+                    onPress={() => !loadingFavorites[item.id] && toggleFavorite(item)}
+                    disabled={loadingFavorites[item.id]}
+                    className="items-center justify-center w-10 h-10 bg-primary-100 rounded-xl"
+                >
+                    {loadingFavorites[item.id] ? (
+                        <ActivityIndicator size="small" color="#0000ff" />
+                    ) : (
+                        <Animated.View>
+                            <Fontisto
+                                name="favorite"
+                                size={24}
+                                color={item.isFavorite ? '#FFB800' : '#9CA3AF'}
+                            />
+                        </Animated.View>
+                    )}
+                </TouchableOpacity>
+            </View>
         </Animated.View>
     );
 
