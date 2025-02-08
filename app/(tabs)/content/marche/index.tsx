@@ -158,7 +158,6 @@ export default function MarketScreen() {
     const showGraphOfCryptoSelected = async (crypto: Crypto) => {
         setIsGraphLoading(prev => ({ ...prev, [crypto.id]: true }));
         try {
-            setSelectedCrypto(crypto);
             console.log("Chargement du graphique pour:", crypto.designation);
 
             const listeCoursCryptoRef = collection(db, "cours_crypto");
@@ -178,6 +177,7 @@ export default function MarketScreen() {
                 });
                 return;
             }
+            setSelectedCrypto(crypto);
 
             resultats.forEach((doc) => {
                 listeCoursCrypto.add({

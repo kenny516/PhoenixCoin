@@ -125,6 +125,7 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
                 xAxisColor="#e5e7eb"
                 yAxisTextStyle={{ color: '#6b7280', fontSize: 12, fontWeight: '500' }}
                 xAxisLabelTextStyle={{ color: '#6b7280', fontSize: 10 }}
+                yAxisLabelWidth={35}
 
                 // Configuration des points de données
                 dataPointsColor="#2563eb"

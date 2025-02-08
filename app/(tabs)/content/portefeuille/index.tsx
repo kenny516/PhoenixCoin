@@ -25,7 +25,7 @@ type PortfolioItem = {
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('fr-FR', {
         style: 'currency',
-        currency: 'MGA',
+        currency: 'EUR',
     }).format(value);
 };
 
