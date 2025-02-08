@@ -1,5 +1,5 @@
 import { SafeAreaView, View, Text, ScrollView, TouchableOpacity, Platform, Dimensions, StatusBar as RNStatusBar } from 'react-native';
-import { Link, router } from 'expo-router';
+import { router } from 'expo-router';
 import { Feather, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth } from '@/firebase/firebaseConfig';
 import { useEffect } from 'react';
@@ -8,7 +8,6 @@ const { width } = Dimensions.get('window');
 
 export default function LandingScreen() {
 
-
     const verifUser = async () => {
         const user = auth.currentUser;
         if (user) {
@@ -16,7 +15,6 @@ export default function LandingScreen() {
         }
     }
     useEffect(() => {
-
         verifUser();
     }, [])
 
