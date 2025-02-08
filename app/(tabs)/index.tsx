@@ -3,20 +3,21 @@ import { router } from 'expo-router';
 import { Feather, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth } from '@/firebase/firebaseConfig';
 import { useEffect } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
 
 const { width } = Dimensions.get('window');
 
 export default function LandingScreen() {
 
-    const verifUser = async () => {
-        const user = auth.currentUser;
-        if (user) {
-            router.push('/(tabs)/content/marche');
-        }
-    }
     useEffect(() => {
-        verifUser();
-    }, [])
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                router.push('/(tabs)/content/marche');
+            }
+        });
+        // Cleanup subscription
+        return () => unsubscribe();
+    }, []);
 
 
     const features = [
