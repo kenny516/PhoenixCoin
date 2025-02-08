@@ -5,9 +5,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '@/firebase/firebaseConfig';
-import { addDoc, collection, getDocs, query } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, query } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
-import { TypeAction } from '@/utils/type';
+import { Profil, TypeAction } from '@/utils/type';
 
 export default function DepotRetraitScreen() {
     const [amount, setAmount] = useState<string>('');
@@ -15,6 +15,7 @@ export default function DepotRetraitScreen() {
     const [typeActions, setTypeActions] = useState<TypeAction[]>([]);
     const [type, setType] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [profil, setProfil] = useState<Profil>();
 
     useEffect(() => {
         loadTypeAction();
@@ -34,6 +35,18 @@ export default function DepotRetraitScreen() {
                 }));
 
                 setTypeActions(typeActionListe);
+
+                const ProfRef = doc(db, "profil", user.uid);
+                const docSnap = await getDoc(ProfRef);
+
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    setProfil({
+                        id: docSnap.id,
+                        nom: data.nom || '',
+                        fondActuel: data.fondActuel || 0,
+                    });
+                }
             }
         } catch (error) {
             Toast.show({
@@ -48,6 +61,11 @@ export default function DepotRetraitScreen() {
     const sauvegarderDemandeOperation = async (amount: string, cardNumber: string, typeAction: string) => {
         const user = auth.currentUser;
         if (user) {
+
+            if (typeAction === 'retrait' && Number(amount) > (profil?.fondActuel || 0)) {
+                Alert.alert('Erreur', 'Le montant demandé est supérieur à votre solde actuel');
+                return;
+            }
             const docRef = collection(db, 'demande_operation');
             const q = query(docRef);
 
@@ -56,6 +74,12 @@ export default function DepotRetraitScreen() {
                 numerCarte: cardNumber,
                 type_operation: typeAction,
                 userId: user.uid,
+            });
+
+            Toast.show({
+                type: 'success',
+                text1: 'Transaction effectuée',
+                text2: `Le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ a bien été effectué`,
             });
         }
     }
@@ -82,11 +106,6 @@ export default function DepotRetraitScreen() {
                         try {
                             setIsSubmitting(true);
                             await sauvegarderDemandeOperation(amount, cardNumber, type);
-                            Toast.show({
-                                type: 'success',
-                                text1: 'Transaction effectuée',
-                                text2: `Le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ a bien été effectué`,
-                            });
                             setAmount('');
                             setCardNumber('');
                             setType('');
@@ -133,6 +152,16 @@ export default function DepotRetraitScreen() {
             </TouchableOpacity>
         );
     };
+
+    // Add current balance display
+    const RenderCurrentBalance = () => (
+        <View className="p-4 mb-4 bg-white shadow-sm rounded-xl">
+            <Text className="font-semibold text-gray-600">Solde actuel</Text>
+            <Text className="text-2xl font-bold text-primary-600">
+                {profil?.fondActuel?.toLocaleString() || '0'} €
+            </Text>
+        </View>
+    );
 
     return (
         <SafeAreaView className="flex-1 bg-gray-100">
@@ -190,6 +219,7 @@ export default function DepotRetraitScreen() {
                                     </View>
                                 )}
                             </View>
+                            <RenderCurrentBalance />
                         </View>
 
                         {/* Montant */}
