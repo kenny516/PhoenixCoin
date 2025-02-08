@@ -140,9 +140,6 @@ export default function MarketScreen() {
                 });
             });
 
-            console.log("Nombre de cryptos chargées:", listeCoursCrypto.length);
-            console.log("Liste des cryptos:", listeCoursCrypto);
-
             setCryptos(listeCoursCrypto);
 
             // Si on a des cryptos, on affiche le graphe de la première
@@ -158,11 +155,8 @@ export default function MarketScreen() {
     const showGraphOfCryptoSelected = async (crypto: Crypto) => {
         setIsGraphLoading(prev => ({ ...prev, [crypto.id]: true }));
         try {
-            console.log("Chargement du graphique pour:", crypto.designation);
-
             const listeCoursCryptoRef = collection(db, "cours_crypto");
             const requette = query(listeCoursCryptoRef, where("id_cryptomonnaie", "==", crypto.id));
-            console.log(crypto);
 
             const resultats = await getDocs(requette);
 
@@ -204,7 +198,7 @@ export default function MarketScreen() {
         const interval = setInterval(() => {
             if (selectedCrypto) {
                 showGraphOfCryptoSelected(selectedCrypto);
-                console.log("call");
+                console.log("fetch");
 
             }
         }, 10000);
