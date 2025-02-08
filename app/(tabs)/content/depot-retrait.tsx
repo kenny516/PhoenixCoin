@@ -78,8 +78,8 @@ export default function DepotRetraitScreen() {
 
             Toast.show({
                 type: 'success',
-                text1: 'Transaction effectuée',
-                text2: `Le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ a bien été effectué`,
+                text1: 'Demande de transaction effectuée',
+                text2: `Le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ a bien été enregistrer`,
             });
         }
     }

@@ -9,16 +9,15 @@ const { width } = Dimensions.get('window');
 
 export default function LandingScreen() {
 
-    /*     useEffect(() => {
-            const unsubscribe = onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    router.push('/(tabs)/content/marche');
-                }
-            });
-            // Cleanup subscription
-            return () => unsubscribe();
-        }, []);
-     */
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (user) {
+                router.push('/(tabs)/content/marche');
+            }
+        });
+        return () => unsubscribe();
+    }, []);
+
 
     const features = [
         {
