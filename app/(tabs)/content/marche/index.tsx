@@ -134,7 +134,7 @@ export default function MarketScreen() {
             resultats.forEach((doc) => {
                 console.log("Crypto trouvée:", doc.data());
                 listeCoursCrypto.push({
-                    id: doc.data().id, // Utilisation de doc.id au lieu de doc.data().id
+                    id: doc.id,
                     designation: doc.data().designation || "Crypto sans nom",
                     isFavorite: false
                 });

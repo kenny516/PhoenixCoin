@@ -97,19 +97,21 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
 
             {/* Graphique */}
             <LineChart
-                data={[...data].reverse().map(item => ({
+                data={data.map(item => ({
                     value: item.value,
                 }))}
-                scrollToEnd={true}
-                scrollAnimation={true}
 
                 // Configuration du tracé
                 areaChart1
                 width={chartWidth}
                 isAnimated
                 animationDuration={1500}
-                thickness={3}
+                thickness={3} // Légèrement plus épais pour un trait plus visible
                 hideDataPoints={false}
+
+
+                // Valeur maximale
+
 
                 // Couleurs et remplissage du graphique
                 color="#3b82f6"
@@ -123,7 +125,7 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
                 xAxisColor="#e5e7eb"
                 yAxisTextStyle={{ color: '#6b7280', fontSize: 12, fontWeight: '500' }}
                 xAxisLabelTextStyle={{ color: '#6b7280', fontSize: 10 }}
-                yAxisLabelWidth={35}
+                yAxisLabelWidth={30}
 
                 // Configuration des points de données
                 dataPointsColor="#2563eb"
@@ -141,12 +143,13 @@ const BitcoinEvolutionChart: React.FC<BitcoinEvolutionChartProps> = ({
 
                 // Règles (grid lines) et indices
                 hideRules={false}
-                rulesType="dotted"
+                rulesType="dotted"  // Optez pour des lignes pointillées pour un look plus léger
                 rulesColor="#d1d5db"
                 showYAxisIndices
                 yAxisIndicesColor="#d1d5db"
                 yAxisIndicesWidth={1}
             />
+
         </View>
     );
 };
