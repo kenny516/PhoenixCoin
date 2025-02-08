@@ -129,7 +129,7 @@ export default function MarketScreen() {
                 });
                 return;
             }
-
+            ////////// il faudrais remplacer doc.data().id par doc.id
             resultats.forEach((doc) => {
                 console.log("Crypto trouvée:", doc.data());
                 listeCoursCrypto.push({
