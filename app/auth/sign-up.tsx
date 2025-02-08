@@ -73,7 +73,7 @@ export default function SignUpScreen() {
         setShowDatePicker(Platform.OS === 'ios');
         if (selectedDate) {
             setDate(selectedDate);
-            setDateNaissance(format(selectedDate, 'dd/MM/yyyy', { locale: fr }));
+            setDateNaissance(format(selectedDate, 'yyyy-MM-dd'));
         }
     };
 
@@ -101,13 +101,11 @@ export default function SignUpScreen() {
                 const user = await createUserWithEmailAndPassword(auth, email, password);
 
                 try {
-                    const [day, month, year] = dateNaissance.split('/');
-                    const formattedDate = new Date(Number(year), Number(month) - 1, Number(day));
 
                     await setDoc(doc(db, 'profil', user.user.uid), {
                         nom,
                         prenom,
-                        date_naissance: formattedDate.toISOString(),
+                        date_naissance: dateNaissance,
                     });
 
                     Toast.show({
