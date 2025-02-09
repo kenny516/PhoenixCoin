@@ -1,6 +1,10 @@
 export type Profil = {
     id: string;
     nom: string;
+    prenom: string;
+    dateNaissance: string;
+    pdp: string;
+    pushToken: string;
     fondActuel: number;
 }
 
