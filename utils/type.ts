@@ -44,7 +44,7 @@ export type BitcoinEvolutionChartProps = {
 
 export type Transaction = {
     id: string;
-    dateAction: string;
+    dateHeure: string;
     cours: number;
     quantite: number;
     profil: string;

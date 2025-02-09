@@ -6,7 +6,7 @@ import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { MotiView } from 'moti';
 import { Skeleton } from 'moti/skeleton';
 import { BlurView } from 'expo-blur';
-import { collection, query, where, getDocs, doc, orderBy, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, orderBy, getDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
 import {
     Profil,
@@ -78,11 +78,10 @@ export default function PortfolioScreen() {
         try {
             const user = auth.currentUser;
             if (user) {
-                const transactionsRef = collection(db, "transactions_crypto");
+                const transactionsRef = collection(db, "transaction");
                 const q = query(
                     transactionsRef,
-                    where("profil", "==", user.uid),
-                    orderBy("dateAction", "desc")
+                    where("idUtilisateur", "==", user.uid)
                 );
                 const querySnapshot = await getDocs(q);
                 const transactionsList: Transaction[] = [];
@@ -91,11 +90,11 @@ export default function PortfolioScreen() {
 
                     transactionsList.push({
                         id: doc.id,
-                        dateAction: data.dateAction,
+                        dateHeure: data.dateHeure,
                         cours: data.cours,
                         quantite: data.quantite,
-                        profil: data.profil,
-                        crypto: data.crypto,
+                        profil: data.idUtilisateur,
+                        crypto: data.cryptomonnaie,
                         typeTransaction: data.typeTransaction,
                     });
                 });
@@ -290,12 +289,7 @@ export default function PortfolioScreen() {
                                                 {isAchat ? 'Achat' : 'Vente'} {item.crypto}
                                             </Text>
                                             <Text className="text-sm text-primary-500">
-                                                {new Date(item.dateAction).toLocaleDateString('fr-FR', {
-                                                    day: '2-digit',
-                                                    month: 'short',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
+                                                {Timestamp.fromMillis(Number(item.dateHeure)).toDate().toLocaleString()}
                                             </Text>
                                         </View>
                                     </View>
