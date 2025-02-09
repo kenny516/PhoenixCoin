@@ -45,7 +45,11 @@ export default function DepotRetraitScreen() {
                     setProfil({
                         id: docSnap.id,
                         nom: data.nom || '',
+                        dateNaissance: data.dateNaissance || '',
                         fondActuel: data.fondActuel || 0,
+                        pdp: data.pdp || '',
+                        prenom: data.prenom || '',
+                        pushToken: data.pushToken || '',
                     });
                 }
             }
@@ -58,6 +62,7 @@ export default function DepotRetraitScreen() {
             console.error('Error loading type actions:', error);
         }
     };
+
 
     const sauvegarderDemandeOperation = async (amount: string, cardNumber: string, typeAction: string) => {
         const user = auth.currentUser;
@@ -82,7 +87,7 @@ export default function DepotRetraitScreen() {
                     montant: amount,
                     numCarteBancaire: cardNumber,
                     typeOperation: typeAction,
-                    idUtilisateur: user.uid,
+                    utilisateur: profil,
                     dateHeure: Timestamp.now()
                 });
             });
