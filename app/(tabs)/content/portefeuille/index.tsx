@@ -170,7 +170,7 @@ export default function PortfolioScreen() {
                     >
                         <Text className="mb-2 text-sm font-medium text-primary-200">Balance totale</Text>
                         <Text className="mb-4 text-4xl font-bold text-white">
-                            {formatCurrency(profil?.fondActuel ?? 0)}
+                            {formatCurrency(profil?.fondsActuel ?? 0)}
                         </Text>
                     </MotiView>
 

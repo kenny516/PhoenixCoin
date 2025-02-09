@@ -57,7 +57,7 @@ export default function DepotRetraitScreen() {
         const user = auth.currentUser;
         if (user) {
 
-            if (typeAction === 'RETRAIT' && Number(amount) > (profil?.fondActuel || 0)) {
+            if (typeAction === 'RETRAIT' && Number(amount) > (profil?.fondsActuel || 0)) {
                 Alert.alert('Erreur', 'Le montant demandé est supérieur à votre solde actuel');
                 return;
             }
@@ -164,7 +164,7 @@ export default function DepotRetraitScreen() {
         <View className="p-4 mb-4 bg-white shadow-sm rounded-xl">
             <Text className="font-semibold text-gray-600">Solde actuel</Text>
             <Text className="text-2xl font-bold text-primary-600">
-                {profil?.fondActuel?.toLocaleString() || '0'} €
+                {profil?.fondsActuel?.toLocaleString() || '0'} €
             </Text>
         </View>
     );
