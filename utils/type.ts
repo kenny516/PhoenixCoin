@@ -1,7 +1,12 @@
 export type Profil = {
     id: string;
     nom: string;
+    prenom: string;
+    dateNaissance: string;
+    pdp: string;
+    pushToken: string;
     fondActuel: number;
+    email?: string;
 }
 
 
@@ -28,6 +33,11 @@ export type Crypto = {
     id: string,
     designation: string,
     isFavorite?: boolean,
+};
+
+export type CryptoWork = {
+    id: number,
+    designation: string,
 };
 
 export type ChartDataPoint = {

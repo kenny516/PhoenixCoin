@@ -13,6 +13,7 @@ import {
     Transaction,
 } from '@/utils/type';
 import Toast from 'react-native-toast-message';
+import { getUser } from '@/service/UserService';
 
 // Type utilisé pour chaque élément du portefeuille calculé
 type PortfolioItem = {
@@ -51,23 +52,9 @@ export default function PortfolioScreen() {
 
     const loadProfile = async () => {
         try {
-            const user = auth.currentUser;
-            if (user) {
-                const profilRef = doc(db, "profil", user.uid);
-                const resultat = await getDoc(profilRef);
-
-                if (resultat.exists()) {
-                    const data = resultat.data();
-                    console.log("Profil :", data);
-
-                    setProfil({
-                        id: resultat.id,
-                        nom: data.nom,
-                        fondActuel: data.fondActuel,
-                    });
-                } else {
-                    console.log("Aucun profil trouvé !");
-                }
+            const profil = await getUser();
+            if (profil) {
+                setProfil(profil);
             }
         } catch (error) {
             console.error("Error loading profil:", error);
