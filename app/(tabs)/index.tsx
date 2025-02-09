@@ -72,7 +72,7 @@ export default function LandingScreen() {
                     <View className="px-4 mt-8">
                         <TouchableOpacity
                             className="bg-primary-600 p-4 rounded-[20px] elevation-3"
-                            onPress={() => router.push('/auth/sign-in')}>
+                            onPress={() => router.push('/auth/sign-up')}>
                             <Text className="text-lg font-bold text-center text-white">Commencer Maintenant</Text>
                         </TouchableOpacity>
                     </View>
