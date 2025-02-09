@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '@/firebase/firebaseConfig';
-import { addDoc, collection, doc, getDoc, getDocs, query, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, query, Timestamp, runTransaction, setDoc } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
 import { Profil, TypeAction } from '@/utils/type';
 
@@ -67,15 +67,24 @@ export default function DepotRetraitScreen() {
                 Alert.alert('Erreur', 'Le montant demandé est supérieur à votre solde actuel');
                 return;
             }
-            const docRef = collection(db, 'demande_operation');
-            const q = query(docRef);
+            const counterRef = doc(db, 'counters', 'demande_operation');
+            await runTransaction(db, async (transaction) => {
+                const counterDoc = await transaction.get(counterRef);
+                if (!counterDoc.exists()) {
+                    throw new Error("Counter document does not exist!");
+                }
 
-            await addDoc(docRef, {
-                montant: amount,
-                numerCarte: cardNumber,
-                type_operation: typeAction,
-                userId: user.uid,
-                date: Timestamp.now()
+                const newId = counterDoc.data().count + 1;
+                transaction.update(counterRef, { count: newId });
+
+                const docRef = doc(db, 'demande_operation', newId.toString());
+                await setDoc(docRef, {
+                    montant: amount,
+                    numerCarte: cardNumber,
+                    type_operation: typeAction,
+                    userId: user.uid,
+                    date: Timestamp.now()
+                });
             });
 
             Toast.show({

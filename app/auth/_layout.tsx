@@ -15,12 +15,12 @@ export default function Layout() {
                     title: 'Connexion'
                 }}
             />
-            <Stack.Screen
+            {/*             <Stack.Screen
                 name="sign-up"
                 options={{
                     title: 'Inscription'
                 }}
-            />
+            /> */}
         </Stack>
     );
 }

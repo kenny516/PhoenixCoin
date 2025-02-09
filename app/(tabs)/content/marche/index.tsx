@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ActivityIndicator, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, runTransaction } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
 import BitcoinEvolutionChart from '@/components/ui/BitcoinEvolutionChart';
 import { ChartDataPoint, CoursCrypto, Crypto } from '@/utils/type';
@@ -83,9 +83,21 @@ export default function MarketScreen() {
                                }); */
             } else {
                 // Ajouter aux favoris
-                await addDoc(favoritesRef, {
-                    userId: user.uid,
-                    cryptoId: crypto.id,
+                const counterRef = doc(db, 'counters', 'favorites');
+                await runTransaction(db, async (transaction) => {
+                    const counterDoc = await transaction.get(counterRef);
+                    if (!counterDoc.exists()) {
+                        throw new Error("Counter document does not exist!");
+                    }
+
+                    const newId = counterDoc.data().count + 1;
+                    transaction.update(counterRef, { count: newId });
+
+                    const docRef = doc(db, 'favorites', newId.toString());
+                    await setDoc(docRef, {
+                        userId: user.uid,
+                        cryptoId: crypto.id,
+                    });
                 });
                 /*              Toast.show({
                                  type: "success",
