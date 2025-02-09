@@ -64,6 +64,11 @@ export default function PortfolioScreen() {
                         id: resultat.id,
                         nom: data.nom,
                         fondActuel: data.fondActuel,
+                        dateNaissance: data.dateNaissance,
+                        pdp: data.pdp,
+                        prenom: data.prenom,
+                        pushToken: data.pushToken,
+                        email: user.email || "",
                     });
                 } else {
                     console.log("Aucun profil trouvé !");

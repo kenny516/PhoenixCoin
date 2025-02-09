@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ActivityIndicator, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, runTransaction } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, runTransaction, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
 import BitcoinEvolutionChart from '@/components/ui/BitcoinEvolutionChart';
-import { ChartDataPoint, Crypto } from '@/utils/type';
+import { ChartDataPoint, Crypto, CryptoWork, Profil } from '@/utils/type';
 import Toast from 'react-native-toast-message';
 import { EvilIcons, FontAwesome, Fontisto } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
@@ -16,6 +16,7 @@ export default function MarketScreen() {
     const [selectedCrypto, setSelectedCrypto] = useState<Crypto>();
     const [loadingFavorites, setLoadingFavorites] = useState<Record<string, boolean>>({});
     const [isGraphLoading, setIsGraphLoading] = useState<Record<string, boolean>>({});
+    const [profil, setProfil] = useState<Profil>();
 
     useEffect(() => {
         loadCrypto().finally(() => {
@@ -29,12 +30,12 @@ export default function MarketScreen() {
             const user = auth.currentUser;
             if (user) {
                 const favoritesRef = collection(db, "favoris");
-                const q = query(favoritesRef, where("idUtilisateur", "==", user.uid));
+                const q = query(favoritesRef, where("utilisateur.id", "==", user.uid));
                 const querySnapshot = await getDocs(q);
 
                 const favoriteIds = new Set<string>();
                 querySnapshot.forEach((doc) => {
-                    favoriteIds.add(doc.data().idCryptomonnnaie);
+                    favoriteIds.add(doc.data().cryptomonnaie.id.toString());
                 });
 
                 setCryptos(currentCryptos =>
@@ -60,11 +61,27 @@ export default function MarketScreen() {
             const user = auth.currentUser;
             if (!user) throw new Error('No user');
 
+            const ProfRef = doc(db, "profil", user.uid);
+            const docSnap = await getDoc(ProfRef);
+            if (docSnap.exists()) {
+                const data = docSnap.data();
+                setProfil({
+                    id: docSnap.id,
+                    nom: data.nom || '',
+                    dateNaissance: data.dateNaissance || '',
+                    fondActuel: data.fondActuel || 0,
+                    pdp: data.pdp || '',
+                    prenom: data.prenom || '',
+                    pushToken: data.pushToken || '',
+                });
+            }
+
+
             const favoritesRef = collection(db, "favoris");
             const q = query(
                 favoritesRef,
-                where("idUtilisateur", "==", user.uid),
-                where("idCryptomonnnaie", "==", crypto.id)
+                where("utilisateur.id", "==", user.uid),
+                where("cryptomonnnaie.id", "==", Number.parseInt(crypto.id))
             );
 
             const querySnapshot = await getDocs(q);
@@ -74,12 +91,13 @@ export default function MarketScreen() {
                 querySnapshot.forEach(async (doc) => {
                     await deleteDoc(doc.ref);
                 });
-                /*                Toast.show({
-                                   type: "success",
-                                   text1: "Favoris",
-                                   text2: "Crypto-monnaie retirée des favoris",
-                               }); */
+                Toast.show({
+                    type: "success",
+                    text1: "Favoris",
+                    text2: "Crypto-monnaie retirée des favoris",
+                });
             } else {
+
                 // Ajouter aux favoris
                 const counterRef = doc(db, 'counters', 'favoris');
                 await runTransaction(db, async (transaction) => {
@@ -91,17 +109,22 @@ export default function MarketScreen() {
                     const newId = counterDoc.data().count + 1;
                     transaction.update(counterRef, { count: newId });
 
+                    const cryptoWork: CryptoWork = {
+                        id: Number.parseInt(crypto.id),
+                        designation: crypto.designation,
+                    }
+
                     const docRef = doc(db, 'favoris', newId.toString());
                     await setDoc(docRef, {
-                        idUtilisateur: user.uid,
-                        idCryptomonnnaie: crypto.id,
+                        utilisateur: profil,
+                        cryptomonnnaie: cryptoWork,
                     });
                 });
-                /*              Toast.show({
-                                 type: "success",
-                                 text1: "Favoris",
-                                 text2: "Crypto-monnaie ajoutée aux favoris",
-                             }); */
+                Toast.show({
+                    type: "success",
+                    text1: "Favoris",
+                    text2: "Crypto-monnaie ajoutée aux favoris",
+                });
             }
 
             setCryptos(currentCryptos =>
