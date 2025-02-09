@@ -12,7 +12,6 @@ import 'react-native-url-polyfill/auto';
 import * as Notifications from 'expo-notifications';
 import Toast from 'react-native-toast-message';
 
-
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
         shouldShowAlert: true,
@@ -20,8 +19,6 @@ Notifications.setNotificationHandler({
         shouldSetBadge: false,
     }),
 });
-
-
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -42,9 +39,6 @@ export default function RootLayout() {
     if (!loaded) {
         return null;
     }
-
-
-
     return (
         <>
             <StatusBarManager />
