@@ -63,7 +63,7 @@ export default function DepotRetraitScreen() {
         const user = auth.currentUser;
         if (user) {
 
-            if (typeAction === 'retrait' && Number(amount) > (profil?.fondActuel || 0)) {
+            if (typeAction === 'RETRAIT' && Number(amount) > (profil?.fondActuel || 0)) {
                 Alert.alert('Erreur', 'Le montant demandé est supérieur à votre solde actuel');
                 return;
             }
@@ -90,7 +90,7 @@ export default function DepotRetraitScreen() {
             Toast.show({
                 type: 'success',
                 text1: 'Demande de transaction effectuée',
-                text2: `Le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ a bien été enregistrer`,
+                text2: `Le ${type === 'DEPOT' ? 'dépôt' : 'RETRAIT'} de ${amount}€ a bien été enregistrer`,
             });
         }
     }
@@ -108,7 +108,7 @@ export default function DepotRetraitScreen() {
 
         Alert.alert(
             'Confirmation',
-            `Confirmer le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ ?`,
+            `Confirmer le ${type === 'DEPOT' ? 'RETRAIT' : 'RETRAIT'} de ${amount}€ ?`,
             [
                 { text: 'Annuler', style: 'cancel' },
                 {
@@ -121,6 +121,7 @@ export default function DepotRetraitScreen() {
                             setCardNumber('');
                             setType('');
                         } catch (error) {
+                            console.log(error);
                             Toast.show({
                                 type: 'error',
                                 text1: 'Erreur',
@@ -147,7 +148,7 @@ export default function DepotRetraitScreen() {
                     }`}
             >
                 <Ionicons
-                    name={action.designation.toLowerCase().includes('dépot') ? 'arrow-down-circle' : 'arrow-up-circle'}
+                    name={action.designation.toLowerCase().includes('DEPOT') ? 'arrow-down-circle' : 'arrow-up-circle'}
                     size={24}
                     color={isSelected ? '#2563EB' : '#6B7280'}
                 />
