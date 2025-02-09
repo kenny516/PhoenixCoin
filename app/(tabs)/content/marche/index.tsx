@@ -4,10 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, runTransaction } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
 import BitcoinEvolutionChart from '@/components/ui/BitcoinEvolutionChart';
-import { ChartDataPoint, CoursCrypto, Crypto } from '@/utils/type';
+import { ChartDataPoint, Crypto } from '@/utils/type';
 import Toast from 'react-native-toast-message';
 import { EvilIcons, FontAwesome, Fontisto } from '@expo/vector-icons';
-import { Pressable } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 export default function MarketScreen() {
@@ -15,7 +14,6 @@ export default function MarketScreen() {
     const [cryptos, setCryptos] = useState<Crypto[]>([]);
     const [graphContent, setGraphContent] = useState<ChartDataPoint[] | undefined>(undefined);
     const [selectedCrypto, setSelectedCrypto] = useState<Crypto>();
-    const [refreshing, setRefreshing] = useState(false);
     const [loadingFavorites, setLoadingFavorites] = useState<Record<string, boolean>>({});
     const [isGraphLoading, setIsGraphLoading] = useState<Record<string, boolean>>({});
 
@@ -30,13 +28,13 @@ export default function MarketScreen() {
         try {
             const user = auth.currentUser;
             if (user) {
-                const favoritesRef = collection(db, "favorites");
-                const q = query(favoritesRef, where("userId", "==", user.uid));
+                const favoritesRef = collection(db, "favoris");
+                const q = query(favoritesRef, where("idUtilisateur", "==", user.uid));
                 const querySnapshot = await getDocs(q);
 
                 const favoriteIds = new Set<string>();
                 querySnapshot.forEach((doc) => {
-                    favoriteIds.add(doc.data().cryptoId);
+                    favoriteIds.add(doc.data().idCryptomonnnaie);
                 });
 
                 setCryptos(currentCryptos =>
@@ -62,11 +60,11 @@ export default function MarketScreen() {
             const user = auth.currentUser;
             if (!user) throw new Error('No user');
 
-            const favoritesRef = collection(db, "favorites");
+            const favoritesRef = collection(db, "favoris");
             const q = query(
                 favoritesRef,
-                where("userId", "==", user.uid),
-                where("cryptoId", "==", crypto.id)
+                where("idUtilisateur", "==", user.uid),
+                where("idCryptomonnnaie", "==", crypto.id)
             );
 
             const querySnapshot = await getDocs(q);
@@ -83,7 +81,7 @@ export default function MarketScreen() {
                                }); */
             } else {
                 // Ajouter aux favoris
-                const counterRef = doc(db, 'counters', 'favorites');
+                const counterRef = doc(db, 'counters', 'favoris');
                 await runTransaction(db, async (transaction) => {
                     const counterDoc = await transaction.get(counterRef);
                     if (!counterDoc.exists()) {
@@ -93,10 +91,10 @@ export default function MarketScreen() {
                     const newId = counterDoc.data().count + 1;
                     transaction.update(counterRef, { count: newId });
 
-                    const docRef = doc(db, 'favorites', newId.toString());
+                    const docRef = doc(db, 'favoris', newId.toString());
                     await setDoc(docRef, {
-                        userId: user.uid,
-                        cryptoId: crypto.id,
+                        idUtilisateur: user.uid,
+                        idCryptomonnnaie: crypto.id,
                     });
                 });
                 /*              Toast.show({
@@ -126,7 +124,7 @@ export default function MarketScreen() {
     const loadCrypto = async () => {
         try {
             console.log("Début du chargement des cryptos");
-            const listeCryptoRef = collection(db, "cryptomonnaies");
+            const listeCryptoRef = collection(db, "cryptomonnaie");
             const requette = query(listeCryptoRef);
             const resultats = await getDocs(requette);
 
@@ -167,8 +165,8 @@ export default function MarketScreen() {
     const showGraphOfCryptoSelected = async (crypto: Crypto) => {
         setIsGraphLoading(prev => ({ ...prev, [crypto.id]: true }));
         try {
-            const listeCoursCryptoRef = collection(db, "cours_crypto");
-            const requette = query(listeCoursCryptoRef, where("id_cryptomonnaie", "==", crypto.id));
+            const listeCoursCryptoRef = collection(db, "coursCrypto");
+            const requette = query(listeCoursCryptoRef, where("idCryptomonnaie", "==", crypto.id));
 
             const resultats = await getDocs(requette);
 
@@ -187,8 +185,8 @@ export default function MarketScreen() {
 
             resultats.forEach((doc) => {
                 listeCoursCrypto.add({
-                    value: doc.data().cours_actuel || 0,
-                    date: doc.data().date_cours || new Date().toISOString()
+                    value: doc.data().cours || 0,
+                    date: doc.data().dateHeure || new Date().toISOString()
                 });
             });
 

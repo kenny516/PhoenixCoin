@@ -26,7 +26,7 @@ export default function DepotRetraitScreen() {
         try {
             const user = auth.currentUser;
             if (user) {
-                const docRef = collection(db, 'type_action');
+                const docRef = collection(db, 'typeAction');
                 const q = query(docRef);
                 const querySnapshot = await getDocs(q);
 
@@ -67,7 +67,7 @@ export default function DepotRetraitScreen() {
                 Alert.alert('Erreur', 'Le montant demandé est supérieur à votre solde actuel');
                 return;
             }
-            const counterRef = doc(db, 'counters', 'demande_operation');
+            const counterRef = doc(db, 'counters', 'operation');
             await runTransaction(db, async (transaction) => {
                 const counterDoc = await transaction.get(counterRef);
                 if (!counterDoc.exists()) {
@@ -77,13 +77,13 @@ export default function DepotRetraitScreen() {
                 const newId = counterDoc.data().count + 1;
                 transaction.update(counterRef, { count: newId });
 
-                const docRef = doc(db, 'demande_operation', newId.toString());
+                const docRef = doc(db, 'operation', newId.toString());
                 await setDoc(docRef, {
                     montant: amount,
-                    numerCarte: cardNumber,
-                    type_operation: typeAction,
-                    userId: user.uid,
-                    date: Timestamp.now()
+                    numCarteBancaire: cardNumber,
+                    typeOperation: typeAction,
+                    idUtilisateur: user.uid,
+                    dateHeure: Timestamp.now()
                 });
             });
 

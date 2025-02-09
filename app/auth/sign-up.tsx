@@ -105,7 +105,7 @@ export default function SignUpScreen() {
                     await setDoc(doc(db, 'profil', user.user.uid), {
                         nom,
                         prenom,
-                        date_naissance: dateNaissance,
+                        dateNaissance: dateNaissance,
                     });
 
                     Toast.show({
