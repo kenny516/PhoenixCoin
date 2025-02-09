@@ -30,6 +30,11 @@ export type Crypto = {
     isFavorite?: boolean,
 };
 
+export type CryptoWork = {
+    id: number,
+    designation: string,
+};
+
 export type ChartDataPoint = {
     value: number;
     date: string;
