@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '@/firebase/firebaseConfig';
-import { addDoc, collection, doc, getDoc, getDocs, query, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, query, Timestamp, runTransaction, setDoc } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
 import { Profil, TypeAction } from '@/utils/type';
 
@@ -63,25 +63,34 @@ export default function DepotRetraitScreen() {
         const user = auth.currentUser;
         if (user) {
 
-            if (typeAction === 'retrait' && Number(amount) > (profil?.fondActuel || 0)) {
+            if (typeAction === 'RETRAIT' && Number(amount) > (profil?.fondActuel || 0)) {
                 Alert.alert('Erreur', 'Le montant demandé est supérieur à votre solde actuel');
                 return;
             }
-            const docRef = collection(db, 'demande_operation');
-            const q = query(docRef);
+            const counterRef = doc(db, 'counters', 'demande_operation');
+            await runTransaction(db, async (transaction) => {
+                const counterDoc = await transaction.get(counterRef);
+                if (!counterDoc.exists()) {
+                    throw new Error("Counter document does not exist!");
+                }
 
-            await addDoc(docRef, {
-                montant: amount,
-                numerCarte: cardNumber,
-                type_operation: typeAction,
-                userId: user.uid,
-                date: Timestamp.now()
+                const newId = counterDoc.data().count + 1;
+                transaction.update(counterRef, { count: newId });
+
+                const docRef = doc(db, 'demande_operation', newId.toString());
+                await setDoc(docRef, {
+                    montant: amount,
+                    numerCarte: cardNumber,
+                    type_operation: typeAction,
+                    userId: user.uid,
+                    date: Timestamp.now()
+                });
             });
 
             Toast.show({
                 type: 'success',
                 text1: 'Demande de transaction effectuée',
-                text2: `Le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ a bien été enregistrer`,
+                text2: `Le ${type === 'DEPOT' ? 'dépôt' : 'RETRAIT'} de ${amount}€ a bien été enregistrer`,
             });
         }
     }
@@ -99,7 +108,7 @@ export default function DepotRetraitScreen() {
 
         Alert.alert(
             'Confirmation',
-            `Confirmer le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ ?`,
+            `Confirmer le ${type === 'DEPOT' ? 'RETRAIT' : 'RETRAIT'} de ${amount}€ ?`,
             [
                 { text: 'Annuler', style: 'cancel' },
                 {
@@ -112,6 +121,7 @@ export default function DepotRetraitScreen() {
                             setCardNumber('');
                             setType('');
                         } catch (error) {
+                            console.log(error);
                             Toast.show({
                                 type: 'error',
                                 text1: 'Erreur',
@@ -138,7 +148,7 @@ export default function DepotRetraitScreen() {
                     }`}
             >
                 <Ionicons
-                    name={action.designation.toLowerCase().includes('dépot') ? 'arrow-down-circle' : 'arrow-up-circle'}
+                    name={action.designation.toLowerCase().includes('DEPOT') ? 'arrow-down-circle' : 'arrow-up-circle'}
                     size={24}
                     color={isSelected ? '#2563EB' : '#6B7280'}
                 />
