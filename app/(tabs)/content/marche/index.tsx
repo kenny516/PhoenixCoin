@@ -8,6 +8,7 @@ import { ChartDataPoint, Crypto, CryptoWork, Profil } from '@/utils/type';
 import Toast from 'react-native-toast-message';
 import { EvilIcons, FontAwesome, Fontisto } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
+import { getUser } from '@/service/UserService';
 
 export default function MarketScreen() {
     const [isLoading, setIsLoading] = useState(true);
@@ -61,19 +62,9 @@ export default function MarketScreen() {
             const user = auth.currentUser;
             if (!user) throw new Error('No user');
 
-            const ProfRef = doc(db, "profil", user.uid);
-            const docSnap = await getDoc(ProfRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                setProfil({
-                    id: docSnap.id,
-                    nom: data.nom || '',
-                    dateNaissance: data.dateNaissance || '',
-                    fondActuel: data.fondActuel || 0,
-                    pdp: data.pdp || '',
-                    prenom: data.prenom || '',
-                    pushToken: data.pushToken || '',
-                });
+            const profil = await getUser();
+            if (profil) {
+                setProfil(profil);
             }
 
 

@@ -8,6 +8,7 @@ import { auth, db } from '@/firebase/firebaseConfig';
 import { addDoc, collection, doc, getDoc, getDocs, query, Timestamp, runTransaction, setDoc } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
 import { Profil, TypeAction } from '@/utils/type';
+import { getUser } from '@/service/UserService';
 
 export default function DepotRetraitScreen() {
     const [amount, setAmount] = useState<string>('');
@@ -36,21 +37,9 @@ export default function DepotRetraitScreen() {
                 }));
 
                 setTypeActions(typeActionListe);
-
-                const ProfRef = doc(db, "profil", user.uid);
-                const docSnap = await getDoc(ProfRef);
-
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    setProfil({
-                        id: docSnap.id,
-                        nom: data.nom || '',
-                        dateNaissance: data.dateNaissance || '',
-                        fondActuel: data.fondActuel || 0,
-                        pdp: data.pdp || '',
-                        prenom: data.prenom || '',
-                        pushToken: data.pushToken || '',
-                    });
+                const profil = await getUser();
+                if (profil) {
+                    setProfil(profil);
                 }
             }
         } catch (error) {
@@ -84,7 +73,7 @@ export default function DepotRetraitScreen() {
 
                 const docRef = doc(db, 'operation', newId.toString());
                 await setDoc(docRef, {
-                    montant: amount,
+                    montant: Number(amount),
                     numCarteBancaire: cardNumber,
                     typeOperation: typeAction,
                     utilisateur: profil,
