@@ -35,7 +35,7 @@ export default function MarketScreen() {
 
                 const favoriteIds = new Set<string>();
                 querySnapshot.forEach((doc) => {
-                    favoriteIds.add(doc.data().cryptomonnaie.id.toString());
+                    favoriteIds.add(doc.data().cryptomonnnaie.id.toString());
                 });
 
                 setCryptos(currentCryptos =>
