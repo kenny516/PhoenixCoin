@@ -73,7 +73,7 @@ export default function SignUpScreen() {
         setShowDatePicker(Platform.OS === 'ios');
         if (selectedDate) {
             setDate(selectedDate);
-            setDateNaissance(format(selectedDate, 'dd/MM/yyyy', { locale: fr }));
+            setDateNaissance(format(selectedDate, 'yyyy-MM-dd'));
         }
     };
 
@@ -101,21 +101,17 @@ export default function SignUpScreen() {
                 const user = await createUserWithEmailAndPassword(auth, email, password);
 
                 try {
-                    const [day, month, year] = dateNaissance.split('/');
-                    const formattedDate = new Date(Number(year), Number(month) - 1, Number(day));
 
                     await setDoc(doc(db, 'profil', user.user.uid), {
                         nom,
                         prenom,
-                        date_naissance: formattedDate.toISOString(),
+                        dateNaissance: dateNaissance,
                     });
 
                     Toast.show({
                         type: 'success',
                         text1: 'Compte créé avec succès',
                         text2: 'Bienvenue sur notre plateforme',
-                        position: 'bottom',
-                        visibilityTime: 4000,
                     });
 
                     router.replace('/auth/sign-in');
@@ -126,7 +122,6 @@ export default function SignUpScreen() {
                         type: 'error',
                         text1: 'Erreur',
                         text2: 'Erreur lors de la création du profil',
-                        position: 'bottom',
                     });
                 }
             } catch (error) {
@@ -135,7 +130,6 @@ export default function SignUpScreen() {
                     type: 'error',
                     text1: 'Erreur',
                     text2: getFirebaseErrorMessage(firebaseError),
-                    position: 'bottom',
                 });
             } finally {
                 setLoading(false);

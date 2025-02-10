@@ -5,9 +5,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Picker } from '@react-native-picker/picker';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { auth, db } from '@/firebase/firebaseConfig';
-import { addDoc, collection, getDocs, query } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, getDocs, query, Timestamp, runTransaction, setDoc } from 'firebase/firestore';
 import Toast from 'react-native-toast-message';
-import { TypeAction } from '@/utils/type';
+import { Profil, TypeAction } from '@/utils/type';
+import { getUser } from '@/service/UserService';
 
 export default function DepotRetraitScreen() {
     const [amount, setAmount] = useState<string>('');
@@ -15,16 +16,18 @@ export default function DepotRetraitScreen() {
     const [typeActions, setTypeActions] = useState<TypeAction[]>([]);
     const [type, setType] = useState<string>('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [profil, setProfil] = useState<Profil>();
 
     useEffect(() => {
         loadTypeAction();
+        console.log("timestamp " + Timestamp.now());
     }, []);
 
     const loadTypeAction = async () => {
         try {
             const user = auth.currentUser;
             if (user) {
-                const docRef = collection(db, 'type_action');
+                const docRef = collection(db, 'typeAction');
                 const q = query(docRef);
                 const querySnapshot = await getDocs(q);
 
@@ -34,6 +37,10 @@ export default function DepotRetraitScreen() {
                 }));
 
                 setTypeActions(typeActionListe);
+                const profil = await getUser();
+                if (profil) {
+                    setProfil(profil);
+                }
             }
         } catch (error) {
             Toast.show({
@@ -45,17 +52,39 @@ export default function DepotRetraitScreen() {
         }
     };
 
+
     const sauvegarderDemandeOperation = async (amount: string, cardNumber: string, typeAction: string) => {
         const user = auth.currentUser;
         if (user) {
-            const docRef = collection(db, 'demande_operation');
-            const q = query(docRef);
 
-            await addDoc(docRef, {
-                montant: amount,
-                numerCarte: cardNumber,
-                type_operation: typeAction,
-                userId: user.uid,
+            if (typeAction === 'RETRAIT' && Number(amount) > (profil?.fondsActuel || 0)) {
+                Alert.alert('Erreur', 'Le montant demandé est supérieur à votre solde actuel');
+                return;
+            }
+            const counterRef = doc(db, 'counters', 'operation');
+            await runTransaction(db, async (transaction) => {
+                const counterDoc = await transaction.get(counterRef);
+                if (!counterDoc.exists()) {
+                    throw new Error("Counter document does not exist!");
+                }
+
+                const newId = counterDoc.data().count + 1;
+                transaction.update(counterRef, { count: newId });
+
+                const docRef = doc(db, 'operation', newId.toString());
+                await setDoc(docRef, {
+                    montant: Number(amount),
+                    numCarteBancaire: cardNumber,
+                    typeOperation: typeAction,
+                    utilisateur: profil,
+                    dateHeure: Timestamp.now()
+                });
+            });
+
+            Toast.show({
+                type: 'success',
+                text1: 'Demande de transaction effectuée',
+                text2: `Le ${type === 'DEPOT' ? 'dépôt' : 'RETRAIT'} de ${amount}€ a bien été enregistrer`,
             });
         }
     }
@@ -73,7 +102,7 @@ export default function DepotRetraitScreen() {
 
         Alert.alert(
             'Confirmation',
-            `Confirmer le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ ?`,
+            `Confirmer le ${type === 'DEPOT' ? 'RETRAIT' : 'RETRAIT'} de ${amount}€ ?`,
             [
                 { text: 'Annuler', style: 'cancel' },
                 {
@@ -82,15 +111,11 @@ export default function DepotRetraitScreen() {
                         try {
                             setIsSubmitting(true);
                             await sauvegarderDemandeOperation(amount, cardNumber, type);
-                            Toast.show({
-                                type: 'success',
-                                text1: 'Transaction effectuée',
-                                text2: `Le ${type === 'depot' ? 'dépôt' : 'retrait'} de ${amount}€ a bien été effectué`,
-                            });
                             setAmount('');
                             setCardNumber('');
                             setType('');
                         } catch (error) {
+                            console.log(error);
                             Toast.show({
                                 type: 'error',
                                 text1: 'Erreur',
@@ -117,7 +142,7 @@ export default function DepotRetraitScreen() {
                     }`}
             >
                 <Ionicons
-                    name={action.designation.toLowerCase().includes('dépot') ? 'arrow-down-circle' : 'arrow-up-circle'}
+                    name={action.designation.toLowerCase().includes('DEPOT') ? 'arrow-down-circle' : 'arrow-up-circle'}
                     size={24}
                     color={isSelected ? '#2563EB' : '#6B7280'}
                 />
@@ -133,6 +158,16 @@ export default function DepotRetraitScreen() {
             </TouchableOpacity>
         );
     };
+
+    // Add current balance display
+    const RenderCurrentBalance = () => (
+        <View className="p-4 mb-4 bg-white shadow-sm rounded-xl">
+            <Text className="font-semibold text-gray-600">Solde actuel</Text>
+            <Text className="text-2xl font-bold text-primary-600">
+                {profil?.fondsActuel?.toLocaleString() || '0'} €
+            </Text>
+        </View>
+    );
 
     return (
         <SafeAreaView className="flex-1 bg-gray-100">
@@ -190,6 +225,7 @@ export default function DepotRetraitScreen() {
                                     </View>
                                 )}
                             </View>
+                            <RenderCurrentBalance />
                         </View>
 
                         {/* Montant */}

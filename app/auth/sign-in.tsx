@@ -73,8 +73,6 @@ export default function SignInScreen() {
                 type: 'success',
                 text1: 'Connexion réussie',
                 text2: 'Bienvenue sur notre plateforme',
-                position: 'bottom',
-                visibilityTime: 4000,
             });
             router.replace('/(tabs)/content/marche');
         } catch (error) {
@@ -83,8 +81,6 @@ export default function SignInScreen() {
                 type: 'error',
                 text1: 'Erreur de connexion',
                 text2: getFirebaseErrorMessage(firebaseError),
-                position: 'bottom',
-                visibilityTime: 4000,
             });
         } finally {
             setLoading(false);

@@ -1,22 +1,23 @@
 import { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, RefreshControl, Alert, ActivityIndicator, ScrollView, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { collection, query, where, getDocs, addDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, setDoc, runTransaction, getDoc } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
 import BitcoinEvolutionChart from '@/components/ui/BitcoinEvolutionChart';
-import { ChartDataPoint, CoursCrypto, Crypto } from '@/utils/type';
+import { ChartDataPoint, Crypto, CryptoWork, Profil } from '@/utils/type';
 import Toast from 'react-native-toast-message';
-import { Fontisto } from '@expo/vector-icons';
-import { Pressable } from 'react-native';
+import { EvilIcons, FontAwesome, Fontisto } from '@expo/vector-icons';
 import Animated from 'react-native-reanimated';
+import { getUser } from '@/service/UserService';
 
 export default function MarketScreen() {
     const [isLoading, setIsLoading] = useState(true);
     const [cryptos, setCryptos] = useState<Crypto[]>([]);
     const [graphContent, setGraphContent] = useState<ChartDataPoint[] | undefined>(undefined);
     const [selectedCrypto, setSelectedCrypto] = useState<Crypto>();
-    const [refreshing, setRefreshing] = useState(false);
     const [loadingFavorites, setLoadingFavorites] = useState<Record<string, boolean>>({});
+    const [isGraphLoading, setIsGraphLoading] = useState<Record<string, boolean>>({});
+    const [profil, setProfil] = useState<Profil>();
 
     useEffect(() => {
         loadCrypto().finally(() => {
@@ -29,13 +30,13 @@ export default function MarketScreen() {
         try {
             const user = auth.currentUser;
             if (user) {
-                const favoritesRef = collection(db, "favorites");
-                const q = query(favoritesRef, where("userId", "==", user.uid));
+                const favoritesRef = collection(db, "favoris");
+                const q = query(favoritesRef, where("utilisateur.id", "==", user.uid));
                 const querySnapshot = await getDocs(q);
 
                 const favoriteIds = new Set<string>();
                 querySnapshot.forEach((doc) => {
-                    favoriteIds.add(doc.data().cryptoId);
+                    favoriteIds.add(doc.data().cryptomonnaie.id.toString());
                 });
 
                 setCryptos(currentCryptos =>
@@ -61,11 +62,17 @@ export default function MarketScreen() {
             const user = auth.currentUser;
             if (!user) throw new Error('No user');
 
-            const favoritesRef = collection(db, "favorites");
+            const profil = await getUser();
+            if (profil) {
+                setProfil(profil);
+            }
+
+
+            const favoritesRef = collection(db, "favoris");
             const q = query(
                 favoritesRef,
-                where("userId", "==", user.uid),
-                where("cryptoId", "==", crypto.id)
+                where("utilisateur.id", "==", user.uid),
+                where("cryptomonnaie.id", "==", Number.parseInt(crypto.id))
             );
 
             const querySnapshot = await getDocs(q);
@@ -75,22 +82,40 @@ export default function MarketScreen() {
                 querySnapshot.forEach(async (doc) => {
                     await deleteDoc(doc.ref);
                 });
-                /*                Toast.show({
-                                   type: "success",
-                                   text1: "Favoris",
-                                   text2: "Crypto-monnaie retirée des favoris",
-                               }); */
-            } else {
-                // Ajouter aux favoris
-                await addDoc(favoritesRef, {
-                    userId: user.uid,
-                    cryptoId: crypto.id,
+                Toast.show({
+                    type: "success",
+                    text1: "Favoris",
+                    text2: "Crypto-monnaie retirée des favoris",
                 });
-                /*              Toast.show({
-                                 type: "success",
-                                 text1: "Favoris",
-                                 text2: "Crypto-monnaie ajoutée aux favoris",
-                             }); */
+            } else {
+
+                // Ajouter aux favoris
+                const counterRef = doc(db, 'counters', 'favoris');
+                await runTransaction(db, async (transaction) => {
+                    const counterDoc = await transaction.get(counterRef);
+                    if (!counterDoc.exists()) {
+                        throw new Error("Counter document does not exist!");
+                    }
+
+                    const newId = counterDoc.data().count + 1;
+                    transaction.update(counterRef, { count: newId });
+
+                    const cryptoWork: CryptoWork = {
+                        id: Number.parseInt(crypto.id),
+                        designation: crypto.designation,
+                    }
+
+                    const docRef = doc(db, 'favoris', newId.toString());
+                    await setDoc(docRef, {
+                        utilisateur: profil,
+                        cryptomonnaie: cryptoWork,
+                    });
+                });
+                Toast.show({
+                    type: "success",
+                    text1: "Favoris",
+                    text2: "Crypto-monnaie ajoutée aux favoris",
+                });
             }
 
             setCryptos(currentCryptos =>
@@ -104,7 +129,7 @@ export default function MarketScreen() {
             await new Promise(resolve => setTimeout(resolve, 500)); // Simulation de délai
 
         } catch (error) {
-            Alert.alert('Erreur', 'Impossible de mettre à jour les favoris');
+            Alert.alert('Erreur', 'Impossible de mettre à jour les favoris' + error);
         } finally {
             setLoadingFavorites(prev => ({ ...prev, [crypto.id]: false }));
         }
@@ -113,7 +138,7 @@ export default function MarketScreen() {
     const loadCrypto = async () => {
         try {
             console.log("Début du chargement des cryptos");
-            const listeCryptoRef = collection(db, "cryptomonnaies");
+            const listeCryptoRef = collection(db, "cryptomonnaie");
             const requette = query(listeCryptoRef);
             const resultats = await getDocs(requette);
 
@@ -129,18 +154,15 @@ export default function MarketScreen() {
                 });
                 return;
             }
-
+            ////////// il faudrais remplacer doc.data().id par doc.id
             resultats.forEach((doc) => {
                 console.log("Crypto trouvée:", doc.data());
                 listeCoursCrypto.push({
-                    id: doc.data().id, // Utilisation de doc.id au lieu de doc.data().id
+                    id: doc.id,
                     designation: doc.data().designation || "Crypto sans nom",
                     isFavorite: false
                 });
             });
-
-            console.log("Nombre de cryptos chargées:", listeCoursCrypto.length);
-            console.log("Liste des cryptos:", listeCoursCrypto);
 
             setCryptos(listeCoursCrypto);
 
@@ -155,13 +177,10 @@ export default function MarketScreen() {
 
     // Modification du showGraphOfCryptoSelected pour une meilleure gestion des erreurs
     const showGraphOfCryptoSelected = async (crypto: Crypto) => {
+        setIsGraphLoading(prev => ({ ...prev, [crypto.id]: true }));
         try {
-            setSelectedCrypto(crypto);
-            console.log("Chargement du graphique pour:", crypto.designation);
-
-            const listeCoursCryptoRef = collection(db, "cours_crypto");
-            const requette = query(listeCoursCryptoRef, where("id_cryptomonnaie", "==", crypto.id));
-            console.log(crypto);
+            const listeCoursCryptoRef = collection(db, "coursCrypto");
+            const requette = query(listeCoursCryptoRef, where("idCryptomonnaie", "==", crypto.id));
 
             const resultats = await getDocs(requette);
 
@@ -172,15 +191,16 @@ export default function MarketScreen() {
                 Toast.show({
                     type: "info",
                     text1: "Information",
-                    text2: "Aucun historique de cours disponible",
+                    text2: "Aucun historique de cours disponible pour " + crypto.designation,
                 });
                 return;
             }
+            setSelectedCrypto(crypto);
 
             resultats.forEach((doc) => {
                 listeCoursCrypto.add({
-                    value: doc.data().cours_actuel || 0,
-                    date: doc.data().date_cours || new Date().toISOString()
+                    value: doc.data().cours || 0,
+                    date: doc.data().dateHeure || new Date().toISOString()
                 });
             });
 
@@ -193,6 +213,8 @@ export default function MarketScreen() {
                 text1: "Erreur",
                 text2: "Impossible de charger le graphique veuillez réessayer",
             });
+        } finally {
+            setIsGraphLoading(prev => ({ ...prev, [crypto.id]: false }));
         }
     };
     // call tous les 10 seconde du showGraphOfCryptoSelected 
@@ -200,7 +222,7 @@ export default function MarketScreen() {
         const interval = setInterval(() => {
             if (selectedCrypto) {
                 showGraphOfCryptoSelected(selectedCrypto);
-                console.log("call");
+                console.log("fetch");
 
             }
         }, 10000);
@@ -213,55 +235,59 @@ export default function MarketScreen() {
         <Animated.View
             className="mb-2"
         >
-            <Pressable
-                onPress={() => showGraphOfCryptoSelected(item)}
-                className="overflow-hidden"
-                style={({ pressed }) => ({
-                    transform: [{
-                        scale: pressed ? 0.98 : 1
-                    }],
-                    opacity: pressed ? 0.9 : 1
-                })}
-            >
-                <View className="flex-row items-center justify-between p-4 bg-white shadow-sm rounded-2xl">
-                    {/* Partie gauche avec icône et nom */}
-                    <View className="flex-row items-center flex-1">
-                        <View className="items-center justify-center w-12 h-12 mr-4 bg-primary-100 rounded-xl">
-                            <Text className="text-xl font-semibold text-primary-600">
-                                {item.designation[0].toUpperCase()}
-                            </Text>
-                        </View>
-
-                        <View className="flex-1">
-                            <Text className="text-lg font-semibold text-gray-900">
-                                {item.designation}
-                            </Text>
-                            <Text className="text-sm text-gray-500">
-                                Crypto-monnaie
-                            </Text>
-                        </View>
+            <View className="flex-row items-center justify-between p-4 bg-white shadow-sm gap-7 rounded-2xl">
+                {/* Partie gauche avec icône et nom */}
+                <View className="flex-row items-center flex-1">
+                    <View className="items-center justify-center w-12 h-12 mr-4 bg-primary-100 rounded-xl">
+                        <Text className="text-xl font-semibold text-primary-600">
+                            {item.designation[0].toUpperCase()}
+                        </Text>
                     </View>
 
-                    {/* Partie droite avec bouton favori */}
-                    <TouchableOpacity
-                        onPress={() => !loadingFavorites[item.id] && toggleFavorite(item)}
-                        disabled={loadingFavorites[item.id]}
-                        className="items-center justify-center w-10 h-10 bg-gray-50 rounded-xl"
-                    >
-                        {loadingFavorites[item.id] ? (
-                            <ActivityIndicator size="small" color="#0000ff" />
-                        ) : (
-                            <Animated.View>
-                                <Fontisto
-                                    name="favorite"
-                                    size={24}
-                                    color={item.isFavorite ? '#FFB800' : '#9CA3AF'}
-                                />
-                            </Animated.View>
-                        )}
-                    </TouchableOpacity>
+                    <View className="flex-1">
+                        <Text className="text-lg font-semibold text-gray-900">
+                            {item.designation}
+                        </Text>
+                        <Text className="text-sm text-gray-500">
+                            Crypto-monnaie
+                        </Text>
+                    </View>
                 </View>
-            </Pressable>
+
+                {/* Partie droite avec bouton favori */}
+                <TouchableOpacity
+                    onPress={() => showGraphOfCryptoSelected(item)}
+                    className="items-center justify-center w-10 h-10 bg-primary-100 rounded-xl"
+                >
+                    {isGraphLoading[item.id] ? (
+                        <ActivityIndicator size="small" color="#0000ff" />
+                    ) : (
+                        <Animated.View>
+                            <FontAwesome name="line-chart" size={24} color="#1D4ED8" />
+                        </Animated.View>
+                    )}
+                </TouchableOpacity>
+
+
+                {/* Partie droite avec bouton favori */}
+                <TouchableOpacity
+                    onPress={() => !loadingFavorites[item.id] && toggleFavorite(item)}
+                    disabled={loadingFavorites[item.id]}
+                    className="items-center justify-center w-10 h-10 bg-primary-100 rounded-xl"
+                >
+                    {loadingFavorites[item.id] ? (
+                        <ActivityIndicator size="small" color="#0000ff" />
+                    ) : (
+                        <Animated.View>
+                            <Fontisto
+                                name="favorite"
+                                size={24}
+                                color={item.isFavorite ? '#FFB800' : '#9CA3AF'}
+                            />
+                        </Animated.View>
+                    )}
+                </TouchableOpacity>
+            </View>
         </Animated.View>
     );
 

@@ -1,7 +1,12 @@
 export type Profil = {
     id: string;
     nom: string;
-    fondActuel: number;
+    prenom: string;
+    dateNaissance: string;
+    pdp: string;
+    expoPushToken: string;
+    fondsActuel: number;
+    email?: string;
 }
 
 
@@ -30,6 +35,11 @@ export type Crypto = {
     isFavorite?: boolean,
 };
 
+export type CryptoWork = {
+    id: number,
+    designation: string,
+};
+
 export type ChartDataPoint = {
     value: number;
     date: string;
@@ -44,7 +54,7 @@ export type BitcoinEvolutionChartProps = {
 
 export type Transaction = {
     id: string;
-    dateAction: string;
+    dateHeure: string;
     cours: number;
     quantite: number;
     profil: string;

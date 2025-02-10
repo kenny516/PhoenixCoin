@@ -19,7 +19,7 @@ export default function ProfileScreen() {
         prenom: "",
         email: "",
         pdp: "",
-        date_naissance: "",
+        dateNaissance: "",
     });
 
     useEffect(() => {
@@ -40,7 +40,7 @@ export default function ProfileScreen() {
                         prenom: data.prenom || '',
                         email: user.email || '',
                         pdp: data.pdp || '',
-                        date_naissance: data.date_naissance || '',
+                        dateNaissance: data.dateNaissance || '',
                     });
                     setImage(data.pdp);
                 }
@@ -261,7 +261,13 @@ export default function ProfileScreen() {
                             />
                             <InfoRow
                                 label="Date de naissance"
-                                value={userInfo.date_naissance || 'Non renseignée'}
+                                value={
+                                    new Date(userInfo.dateNaissance).toLocaleDateString('fr-FR', {
+                                        day: '2-digit',
+                                        month: 'long',
+                                        year: 'numeric'
+                                    }) || "Non renseigné"
+                                }
                                 icon="calendar"
                             />
                         </View>

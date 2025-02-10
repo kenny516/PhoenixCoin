@@ -6,13 +6,14 @@ import { MaterialIcons, Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { MotiView } from 'moti';
 import { Skeleton } from 'moti/skeleton';
 import { BlurView } from 'expo-blur';
-import { collection, query, where, getDocs, doc, orderBy, getDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, orderBy, getDoc, Timestamp } from 'firebase/firestore';
 import { auth, db } from '@/firebase/firebaseConfig';
 import {
     Profil,
     Transaction,
 } from '@/utils/type';
 import Toast from 'react-native-toast-message';
+import { getUser } from '@/service/UserService';
 
 // Type utilisé pour chaque élément du portefeuille calculé
 type PortfolioItem = {
@@ -25,7 +26,7 @@ type PortfolioItem = {
 const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('fr-FR', {
         style: 'currency',
-        currency: 'MGA',
+        currency: 'EUR',
     }).format(value);
 };
 
@@ -51,23 +52,9 @@ export default function PortfolioScreen() {
 
     const loadProfile = async () => {
         try {
-            const user = auth.currentUser;
-            if (user) {
-                const profilRef = doc(db, "profil", user.uid);
-                const resultat = await getDoc(profilRef);
-
-                if (resultat.exists()) {
-                    const data = resultat.data();
-                    console.log("Profil :", data);
-
-                    setProfil({
-                        id: resultat.id,
-                        nom: data.nom,
-                        fondActuel: data.fondActuel,
-                    });
-                } else {
-                    console.log("Aucun profil trouvé !");
-                }
+            const profil = await getUser();
+            if (profil) {
+                setProfil(profil);
             }
         } catch (error) {
             console.error("Error loading profil:", error);
@@ -78,11 +65,10 @@ export default function PortfolioScreen() {
         try {
             const user = auth.currentUser;
             if (user) {
-                const transactionsRef = collection(db, "transactions_crypto");
+                const transactionsRef = collection(db, "transaction");
                 const q = query(
                     transactionsRef,
-                    where("profil", "==", user.uid),
-                    orderBy("dateAction", "desc")
+                    where("idUtilisateur", "==", user.uid)
                 );
                 const querySnapshot = await getDocs(q);
                 const transactionsList: Transaction[] = [];
@@ -91,11 +77,11 @@ export default function PortfolioScreen() {
 
                     transactionsList.push({
                         id: doc.id,
-                        dateAction: data.dateAction,
+                        dateHeure: data.dateHeure,
                         cours: data.cours,
                         quantite: data.quantite,
-                        profil: data.profil,
-                        crypto: data.crypto,
+                        profil: data.idUtilisateur,
+                        crypto: data.cryptomonnaie,
                         typeTransaction: data.typeTransaction,
                     });
                 });
@@ -184,7 +170,7 @@ export default function PortfolioScreen() {
                     >
                         <Text className="mb-2 text-sm font-medium text-primary-200">Balance totale</Text>
                         <Text className="mb-4 text-4xl font-bold text-white">
-                            {formatCurrency(profil?.fondActuel ?? 0)}
+                            {formatCurrency(profil?.fondsActuel ?? 0)}
                         </Text>
                     </MotiView>
 
@@ -290,12 +276,7 @@ export default function PortfolioScreen() {
                                                 {isAchat ? 'Achat' : 'Vente'} {item.crypto}
                                             </Text>
                                             <Text className="text-sm text-primary-500">
-                                                {new Date(item.dateAction).toLocaleDateString('fr-FR', {
-                                                    day: '2-digit',
-                                                    month: 'short',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit'
-                                                })}
+                                                {Timestamp.fromMillis(Number(item.dateHeure)).toDate().toLocaleString()}
                                             </Text>
                                         </View>
                                     </View>

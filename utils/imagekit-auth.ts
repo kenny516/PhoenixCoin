@@ -1,7 +1,5 @@
-import { getFirestore, collection, addDoc, serverTimestamp } from 'firebase/firestore';
+
 import CryptoJS from 'crypto-js';
-import { Platform } from 'react-native';
-import Config from 'react-native-config';
 import Constants from 'expo-constants';
 
 interface AuthParams {
@@ -13,13 +11,11 @@ interface AuthParams {
 class ImageKitAuth {
     private privateKey: string;
     private publicKey: string;
-    private db;
 
     constructor() {
         // Utiliser des variables d'environnement
         this.privateKey = Constants.expoConfig?.extra?.imageKitPrivateKey || "";
-        this.publicKey = Constants.expoConfig?.extra?.imageKitPublicKey || "",
-            this.db = getFirestore();
+        this.publicKey = Constants.expoConfig?.extra?.imageKitPublicKey || ""
     }
 
     private getExpireTimestamp(): number {
@@ -65,15 +61,15 @@ class ImageKitAuth {
             const expire = this.getExpireTimestamp();
             const signature = this.generateSignature(token, expire);
 
-            await addDoc(collection(this.db, 'imagekit_auths'), {
-                token,
-                expire,
-                createdAt: serverTimestamp(),
-                deviceInfo: {
-                    platform: Platform.OS,
-                    version: Platform.Version
-                }
-            });
+            /*             await addDoc(collection(this.db, 'imagekit_auths'), {
+                            token,
+                            expire,
+                            createdAt: serverTimestamp(),
+                            deviceInfo: {
+                                platform: Platform.OS,
+                                version: Platform.Version
+                            }
+                        }); */
 
             return { token, expire, signature };
         } catch (error) {
