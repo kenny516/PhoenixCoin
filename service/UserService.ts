@@ -16,7 +16,7 @@ export const getUser = async () => {
             dateNaissance: docSnap.data().dateNaissance,
             pdp: docSnap.data().pdp,
             expoPushToken: docSnap.data().pushToken,
-            fondsActuel: docSnap.data().fondActuel,
+            fondsActuel: docSnap.data().fondsActuel,
             email: userCurrent.email ? userCurrent.email : "",
         }
         return profil;

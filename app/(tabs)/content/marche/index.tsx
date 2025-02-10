@@ -36,7 +36,7 @@ export default function MarketScreen() {
 
                 const favoriteIds = new Set<string>();
                 querySnapshot.forEach((doc) => {
-                    favoriteIds.add(doc.data().cryptomonnnaie.id.toString());
+                    favoriteIds.add(doc.data().cryptomonnaie.id.toString());
                 });
 
                 setCryptos(currentCryptos =>
@@ -72,7 +72,7 @@ export default function MarketScreen() {
             const q = query(
                 favoritesRef,
                 where("utilisateur.id", "==", user.uid),
-                where("cryptomonnnaie.id", "==", Number.parseInt(crypto.id))
+                where("cryptomonnaie.id", "==", Number.parseInt(crypto.id))
             );
 
             const querySnapshot = await getDocs(q);
@@ -129,7 +129,7 @@ export default function MarketScreen() {
             await new Promise(resolve => setTimeout(resolve, 500)); // Simulation de délai
 
         } catch (error) {
-            Alert.alert('Erreur', 'Impossible de mettre à jour les favoris');
+            Alert.alert('Erreur', 'Impossible de mettre à jour les favoris' + error);
         } finally {
             setLoadingFavorites(prev => ({ ...prev, [crypto.id]: false }));
         }
