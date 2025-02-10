@@ -4,7 +4,7 @@ export type Profil = {
     prenom: string;
     dateNaissance: string;
     pdp: string;
-    pushToken: string;
+    expoPushToken: string;
     fondsActuel: number;
     email?: string;
 }

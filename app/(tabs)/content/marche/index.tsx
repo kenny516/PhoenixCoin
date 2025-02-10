@@ -108,7 +108,7 @@ export default function MarketScreen() {
                     const docRef = doc(db, 'favoris', newId.toString());
                     await setDoc(docRef, {
                         utilisateur: profil,
-                        cryptomonnnaie: cryptoWork,
+                        cryptomonnaie: cryptoWork,
                     });
                 });
                 Toast.show({
